@@ -1,0 +1,150 @@
+{
+ "tn": {
+  "rows": 914879,
+  "leaves": 380757,
+  "doc_years": [
+   "2014-15",
+   "2015-16",
+   "2016-17",
+   "2017-18",
+   "2018-19",
+   "2019-20",
+   "2020-21",
+   "2021-22",
+   "2022-23",
+   "2023-24",
+   "2024-25",
+   "2025-26",
+   "2026-27"
+  ],
+  "inputs": [
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2014-15/TN_csv/TN_budget_2014-15_cleaned.csv",
+    "fca56caf9fa53c27"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2015-16/TN_csv/TN_budget_2015-16_cleaned.csv",
+    "f67269cf5692cf7b"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2016-17/TN_csv/TN_budget_2016-17_cleaned.csv",
+    "5ba8eddd6f1a32ba"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2017-18/TN_csv/TN_budget_2017-18_cleaned.csv",
+    "e6d9294f4fff96b9"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2018-19/TN_csv/TN_budget_2018-19_cleaned.csv",
+    "0c8d009adc68de1e"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2019-20/TN_csv/TN_budget_2019-20_cleaned.csv",
+    "c8fb67f32a1772ab"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2020-21/TN_csv/TN_budget_2020-21_cleaned.csv",
+    "4068538625c8e50a"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2021-22/TN_csv/TN_budget_2021-22_cleaned.csv",
+    "e0aff03158e5be2f"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2022-23/TN_csv/TN_budget_2022-23_cleaned.csv",
+    "1e02314b2747fbb8"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2023-24/TN_csv/TN_budget_2023-24_cleaned.csv",
+    "fccf261fb71f7927"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2024-25/TN_csv/TN_budget_2024-25_cleaned.csv",
+    "cde494f4cc5f29c2"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2025-26/TN_csv/TN_budget_2025-26_cleaned.csv",
+    "b2c2272afee049f2"
+   ],
+   [
+    "state-finances/tamil-nadu/TN_years/TN_2026-27/TN_csv/TN_budget_2026-27_cleaned.csv",
+    "249c5ce6b6b6b886"
+   ]
+  ],
+  "corrupt_amounts_skipped": [
+   {
+    "doc_year": "2019-20",
+    "code": "2071 01 101 AA 32701",
+    "column": "budget_estimate_2018_19_amount_inThous",
+    "value": "1026069461"
+   },
+   {
+    "doc_year": "2019-20",
+    "code": "2071 01 101 AA 32701",
+    "column": "revised_estimate_2018_19_amount_inThous",
+    "value": "1160849661"
+   }
+  ]
+ },
+ "ka": {
+  "rows": 175981,
+  "leaves": 97350,
+  "doc_years": [
+   "2018-19",
+   "2019-20",
+   "2020-21",
+   "2021-22",
+   "2022-23",
+   "2023-24",
+   "2024-25",
+   "2025-26",
+   "2026-27"
+  ],
+  "inputs": [
+   [
+    "state-finances/karnataka/KA_years/KA_2018-19/KA_csv/KA_budget_2018-19_cleaned.csv",
+    "67fe3ee853555a57"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2019-20/KA_csv/KA_budget_2019-20_cleaned.csv",
+    "1737cc8cf45d9177"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2020-21/KA_csv/KA_budget_2020-21_cleaned.csv",
+    "c277e2e2b68b79c9"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2021-22/KA_csv/KA_budget_2021-22_cleaned.csv",
+    "ca53ddf1de12ea25"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2022-23/KA_csv/KA_budget_2022-23_cleaned.csv",
+    "4d460270c41a2fe2"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2023-24/KA_csv/KA_budget_2023-24_cleaned.csv",
+    "389cae6192ebd393"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2024-25/KA_csv/KA_budget_2024-25_cleaned.csv",
+    "cb2fa3346c72730c"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2025-26/KA_csv/KA_budget_2025-26_cleaned.csv",
+    "f7bd65659cfb33ef"
+   ],
+   [
+    "state-finances/karnataka/KA_years/KA_2026-27/KA_csv/KA_budget_2026-27_cleaned.csv",
+    "0be652b1a5c1a933"
+   ]
+  ],
+  "corrupt_amounts_skipped": [
+   {
+    "doc_year": "2022-23",
+    "code": "2014-00-Legal Advisers and Counsels-04-020",
+    "column": "accounts_2020_21_amount",
+    "value": "15301272014001140040211.0010030015301272\u2026"
+   }
+  ]
+ }
+}

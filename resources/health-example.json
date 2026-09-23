@@ -1,0 +1,65 @@
+{
+  "source": "xKDR/india-public-finance-portal/examples/data/processed/canonical_numbers.json",
+  "source_sha256": "63cd62dae4cf4347ac8d1cdcf2cc3dae7044c2d926f7168b1489d45d1e7eedc2",
+  "unit": "INR_crore",
+  "heads": [
+    "2210",
+    "2211"
+  ],
+  "rows": [
+    {
+      "fiscal_year": "2016-17",
+      "be": 6348.76,
+      "re": 10250.97,
+      "actuals": 6145.78
+    },
+    {
+      "fiscal_year": "2017-18",
+      "be": 9643.69,
+      "re": 6576.72,
+      "actuals": 6984.1
+    },
+    {
+      "fiscal_year": "2018-19",
+      "be": 8507.91,
+      "re": 8594.31,
+      "actuals": 8369.26
+    },
+    {
+      "fiscal_year": "2019-20",
+      "be": 8629.97,
+      "re": 8251.01,
+      "actuals": 8338.53
+    },
+    {
+      "fiscal_year": "2020-21",
+      "be": 9315.59,
+      "re": 9843.38,
+      "actuals": 9768.51
+    },
+    {
+      "fiscal_year": "2021-22",
+      "be": 11156.9,
+      "re": 12783.58,
+      "actuals": 12718.13
+    },
+    {
+      "fiscal_year": "2022-23",
+      "be": 12872.87,
+      "re": 12286.4,
+      "actuals": 11308.78
+    },
+    {
+      "fiscal_year": "2023-24",
+      "be": 13251.54,
+      "re": 12957.91,
+      "actuals": 12237.86
+    },
+    {
+      "fiscal_year": "2024-25",
+      "be": 15046.69,
+      "re": 13930.88,
+      "actuals": 12771.07
+    }
+  ]
+}
