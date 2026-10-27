@@ -42,6 +42,9 @@
   let YEARS = [];                // union fy axis, sorted string labels
   const STATE_YIX = {};          // state key -> Map(fy label -> own index)
   const PATH2ENTRY = new Map();  // compare-index path -> [path, lv, states]
+  /* Whole-state total, offered as a card like any head (path 'total',
+     lv 'all') and drawn on a first visit so the page opens on a chart. */
+  const TOTAL_PATH = 'total', TOTAL_NAME = 'Total expenditure';
 
   const S = {
     cards: [],
@@ -77,6 +80,11 @@
     const key = st + '|' + card.path;
     if (SCACHE.has(key)) return SCACHE.get(key);
     const ix = IXS[st];
+    if (card.lv === 'all') {
+      const rec = { name: TOTAL_NAME, vals: seriesFromD(ix.totals, ix.fys.length) };
+      SCACHE.set(key, rec);
+      return rec;
+    }
     const mj = card.path.split('-')[0];
     const major = ix.majors.find(m => m.c === mj);
     if (!major) { SCACHE.set(key, null); return null; }
@@ -205,10 +213,19 @@
       IXS[st.k].fys.forEach((y, i) => m.set(y, i));
       STATE_YIX[st.k] = m;
     }
+    const totalStates = {};
+    for (const st of CIX.states) {
+      const ix = IXS[st.k], be = ix.totals.be || {};
+      const last = Math.max(...Object.keys(be).map(Number));
+      totalStates[st.k] = [TOTAL_NAME, (be[last] || 0) / (ix.crore_div || 1)];
+    }
+    const totalEntry = [TOTAL_PATH, 'all', totalStates];
+    CIX.entries.unshift(totalEntry);
+    PATH2ENTRY.set(TOTAL_PATH, totalEntry);
     S.from = Math.max(0, YEARS.length - 11);
     S.to = YEARS.length - 1;
 
-    $('#cmeta').textContent = CIX.entries.length + ' comparable heads '
+    $('#cmeta').textContent = (CIX.entries.length - 1) + ' comparable heads '
       + 'across ' + CIX.states.map(st => st.name).join(', ')
       + ' · states pair by code down to the minor head · ₹ crore';
 
@@ -398,7 +415,7 @@
     head.className = 'chead';
     const code = document.createElement('span');
     code.className = 'code';
-    code.textContent = card.path;
+    code.textContent = card.lv === 'all' ? 'All' : card.path;
     const primary = entry ? headPrimaryName(entry[2]) : null;
     const ttl = document.createElement('span');
     ttl.className = 'ttl';
@@ -493,7 +510,7 @@
       values: l.values, color: Engine.cssv('--s' + (l.stIdx + 1)),
       dash: Engine.DASH[l.mk],
       name: l.st.toUpperCase() + ' · ' + MEAS.find(m => m[0] === l.mk)[1],
-      code: card.path,
+      code: card.lv === 'all' ? 'All' : card.path,
     }));
     const title = MEAS.filter(m => S.measures.includes(m[0]))
       .map(m => m[1]).join(' · ')
@@ -582,6 +599,11 @@
       for (const st of CIX.states)
         if (states[st.k]) present[st.k] = on.includes(st.k);
       S.cards.push({ path, lv, states: present });
+    }
+    if (!('c' in h)) {
+      const present = {};
+      for (const st of CIX.states) present[st.k] = true;
+      S.cards.push({ path: TOTAL_PATH, lv: 'all', states: present });
     }
   }
 
@@ -684,7 +706,7 @@
 
       const code = document.createElement('span');
       code.className = 'code';
-      code.textContent = path;
+      code.textContent = lv === 'all' ? 'All' : path;
 
       const primary = primaryName(states);
       const nm = document.createElement('span');
@@ -707,7 +729,7 @@
 
       const lvSpan = document.createElement('span');
       lvSpan.className = 'lv';
-      lvSpan.textContent = Search.LV_LABEL[lv] || lv;
+      lvSpan.textContent = lv === 'all' ? 'state total' : Search.LV_LABEL[lv] || lv;
 
       const pills = document.createElement('span');
       pills.className = 'pills';

@@ -5,6 +5,12 @@
    can be combined into a named GROUP whose line is the element-wise sum of
    its members; one palette slot, ungroup splits it back.
 
+   The page opens on one line, the state's whole expenditure ("All").
+   Double-clicking a line opens its parts one level down (All -> major
+   heads -> sub-majors -> ...) as a new view, largest first; past seven
+   parts the remainder is one "Other" line, so the view still adds up to
+   the line it came from. Back returns to the previous view.
+
    Encoding: hue = head (8 palette slots, never cycled), dash = measure.
    Scales: ₹ crore · % of state total (same measure, same year) ·
    indexed (first plotted year = 100). */
@@ -30,6 +36,7 @@
     sel: [], slot: new Map(),
     groups: new Map(),              // gkey -> {name, members:[key]}
     marked: new Set(), q: '',
+    back: [],                       // views left by drill(), for Back
   };
 
   const crore = v => v == null ? null : v / IX.crore_div;
@@ -50,9 +57,17 @@
     return codes && codes.length ? mj + '/' + codes.join('.') : mj;
   }
 
+  const ALL = 'all';
+
   function makeItem(mj, codes, name) {
     const key = itemKey(mj, codes);
     if (items.has(key)) return items.get(key);
+    if (mj === ALL) {
+      const it = { key, kind: 'all', mj, codes: [], code: 'All',
+        name: 'All expenditure', label: 'All', vals: seriesFromD(IX.totals) };
+      items.set(key, it);
+      return it;
+    }
     const m = IX.majors.find(x => x.c === mj);
     const it = {
       key, mj, codes: codes || [],
@@ -134,6 +149,81 @@
     render();
   }
 
+  /* Split a plotted line into its parts, one level down. */
+  function drill(key) {
+    if (S.groups.has(key)) { ungroup(key); return; }
+    const it = items.get(key);
+    if (!it || it.kind === 'rest') return;
+    const rank = { m: 'be', f0: S.from, f1: S.to };
+    let kids;
+    if (it.kind === 'all') {
+      kids = IX.majors.map(m => ({ mj: m.c, codes: [], v: Model.mval(m, rank) }));
+    } else {
+      const md = models.get(it.mj);
+      if (!md) { ensureShard(it.mj, () => drill(key)); return; }
+      const d = it.codes.length, byCodes = new Map();
+      for (const t of Model.trailsAtDepth(md, d + 1, rank)) {
+        const codes = t.trail.map(id => md.nodes[id].code);
+        if (codes.slice(0, d).some((c, a) => c !== it.codes[a])) continue;
+        const ck = codes.join('.');
+        const prev = byCodes.get(ck);
+        if (prev) prev.v += t.v;
+        else byCodes.set(ck, { mj: it.mj, codes, v: t.v });
+      }
+      kids = [...byCodes.values()];
+    }
+    kids = kids.filter(k => k.v > 0).sort((a, b) => b.v - a.v);
+    if (!kids.length) {
+      note(displayName(key) + ' is the deepest level; it has no parts to show.');
+      return;
+    }
+    let show = kids, rest = [];
+    if (kids.length > MAX) { show = kids.slice(0, MAX - 1); rest = kids.slice(MAX - 1); }
+    S.back.push({ sel: S.sel.slice(), slot: new Map(S.slot),
+      name: displayName(key) });
+    S.sel = []; S.slot = new Map(); S.marked.clear();
+    const added = show.map(k => makeItem(k.mj, k.codes).key);
+    if (rest.length) added.push(makeRest(it, show, rest.length).key);
+    added.forEach(k => { if (assignSlot(k)) S.sel.push(k); });
+    render();
+  }
+
+  function goBack() {
+    const v = S.back.pop();
+    if (!v) return;
+    S.sel = v.sel.filter(k => items.has(k) || S.groups.has(k));
+    S.slot = v.slot; S.marked.clear();
+    render();
+  }
+
+  /* The parent's line minus the parts drawn, so the split still sums. */
+  function makeRest(parent, shown, n) {
+    const keys = shown.map(k => itemKey(k.mj, k.codes));
+    const vals = {};
+    for (const [mk] of MEAS) {
+      const out = (parent.vals[mk] || new Array(IX.fys.length).fill(0)).slice();
+      for (const k of keys) {
+        const c = items.get(k);
+        if (!resolveItem(c)) continue;
+        const v = c.vals[mk];
+        if (v) for (let f = 0; f < out.length; f++) out[f] -= v[f];
+      }
+      vals[mk] = out;
+    }
+    const key = 'rest:' + parent.key;
+    const it = { key, kind: 'rest', mj: parent.mj, codes: [], code: '…',
+      name: 'Other ' + (parent.kind === 'all' ? '' : 'in ' + parent.name + ' ')
+        + '(' + n + ' heads)', label: 'Other', vals };
+    items.set(key, it);
+    return it;
+  }
+
+  function note(msg) {
+    $('#pnote').textContent = msg;
+    clearTimeout(capNote.t);
+    capNote.t = setTimeout(() => { $('#pnote').textContent = ''; }, 5200);
+  }
+
   function capNote() {
     $('#pnote').textContent = 'Eight lines is the cap; the palette has '
       + 'eight slots. Unpick one, or combine some into a group.';
@@ -200,6 +290,7 @@
   function displayCode(key) {
     if (S.groups.has(key)) return 'Σ';
     const it = items.get(key);
+    if (it && it.kind) return it.code;
     return it ? (it.codes.length ? it.mj + '›' + it.codes.join('›') : it.mj)
       : key;
   }
@@ -277,7 +368,8 @@
       sub: unitLabel(),
       render: Engine.lineChart({ years, series: resolved, fmt: fmtV,
         height: 430, zero: S.scale !== 'idx',
-        xEvery: years.length > 11 ? 2 : 1 }),
+        xEvery: years.length > 11 ? 2 : 1,
+        onLineDblClick: s => drill(s.key) }),
       table: () => {
         const cols = ['Head', 'Measure'].concat(years);
         const rows = [];
@@ -288,13 +380,24 @@
         }
         return Engine.table(cols, rows, { leftCols: [1] });
       },
-      caption: Engine.MEASURE_HELP + ' Colour identifies the head. Gaps indicate unavailable data.',
+      caption: Engine.MEASURE_HELP + ' Colour identifies the head. Gaps indicate unavailable data.'
+        + ' Double-click a line, or its chip above, to open its parts.',
     });
   }
 
   function drawTray() {
     const host = $('#tray');
     host.innerHTML = '';
+    if (S.back.length) {
+      const bk = document.createElement('button');
+      bk.type = 'button';
+      bk.className = 'btn sm';
+      bk.textContent = '← Back';
+      bk.title = 'Return to the view before ' + S.back[S.back.length - 1].name
+        + ' was split';
+      bk.addEventListener('click', goBack);
+      host.append(bk);
+    }
     if (!S.sel.length) {
       const s = document.createElement('span');
       s.className = 'hint';
@@ -350,6 +453,10 @@
       x.textContent = '×';
       x.addEventListener('click', () => toggleSel(key));
       chip.append(x);
+      chip.addEventListener('dblclick', ev => {
+        if (ev.target.closest('input, button')) return;
+        drill(key);
+      });
       host.append(chip);
     }
     const gb = document.createElement('button');
@@ -364,10 +471,13 @@
   function pickerItems() {
     const rank = { m: 'be', f0: S.from, f1: S.to };
     if (S.level === 'mj') {
-      return IX.majors.map(m => ({
-        mj: m.c, codes: [], code: m.c, name: m.n,
-        v: Model.mval(m, rank),
-      })).sort((a, b) => b.v - a.v);
+      let all = 0;
+      for (let f = S.from; f <= S.to; f++) all += (IX.totals.be || {})[f] || 0;
+      return [{ mj: ALL, codes: [], code: 'All', name: 'All expenditure', v: all }]
+        .concat(IX.majors.map(m => ({
+          mj: m.c, codes: [], code: m.c, name: m.n,
+          v: Model.mval(m, rank),
+        })).sort((a, b) => b.v - a.v));
     }
     const md = models.get(S.mjScope);
     if (!md) { ensureShard(S.mjScope); return null; }
@@ -534,7 +644,7 @@
       : h.add);
     for (const key of addKeys) {
       const [mj, rest] = key.split('/');
-      if (!IX.majors.some(m => m.c === mj)) continue;
+      if (mj !== ALL && !IX.majors.some(m => m.c === mj)) continue;
       makeItem(mj, rest ? rest.split('.') : []);
       if (assignSlot(key) && !S.sel.includes(key)) S.sel.push(key);
     }
@@ -552,14 +662,10 @@
       S.groups.set(gkey, { name: name || 'Group', members });
       if (assignSlot(gkey)) S.sel.push(gkey);
     }
-    /* default: top 4 majors */
+    /* default: the whole state's expenditure, one line */
     if (!S.sel.length) {
-      const rank = { m: 'be', f0: S.from, f1: S.to };
-      [...IX.majors].sort((a, b) => Model.mval(b, rank) - Model.mval(a, rank))
-        .slice(0, 4).forEach(m => {
-          const it = makeItem(m.c, []);
-          if (assignSlot(it.key)) S.sel.push(it.key);
-        });
+      const it = makeItem(ALL, []);
+      if (assignSlot(it.key)) S.sel.push(it.key);
     }
   }
 

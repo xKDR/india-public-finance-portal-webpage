@@ -30,6 +30,18 @@
     .getPropertyValue(n).trim();
   const SERIES = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'];
   const seriesColor = i => cssv(SERIES[i % SERIES.length]);
+  /* Label ink for text drawn on a filled shape: white on dark fills,
+     near-black on light ones (relative luminance of a #rrggbb colour). */
+  const inkOn = hex => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return '#151515';
+    const lin = c => { c /= 255; return c <= .04045 ? c / 12.92
+      : Math.pow((c + .055) / 1.055, 2.4); };
+    const n = parseInt(m[1], 16);
+    const L = .2126 * lin(n >> 16 & 255) + .7152 * lin(n >> 8 & 255)
+      + .0722 * lin(n & 255);
+    return L < .25 ? '#ffffff' : '#151515';
+  };
 
   /* Dash per measure; the portal-wide rule. */
   const DASH = { be: '', re: '12,6', ac: '1,7', bp: '12,4,2,4' };
@@ -252,11 +264,19 @@
     svg.append(el('line', { x1: x0, x2: x1, y1: zy, y2: zy, stroke: axisC,
       'stroke-width': 1 }));
     const xs = scaleBand(years.length, x0, x1);
+    /* Year labels sit flat when each has room (~62px for "2026-27");
+       otherwise they slant, anchored at their end so they hang below the
+       axis instead of crossing it. */
+    const shown = years.filter((_, i) => !(i % xEvery) || i === years.length - 1);
+    const flat = (x1 - x0) / Math.max(1, shown.length) >= 62;
     years.forEach((y, i) => {
       if (i % xEvery && i !== years.length - 1) return;
-      svg.append(el('text', { x: xs(i), y: y1 + 18, 'text-anchor': 'middle',
-        'font-size': 12.5, fill: mut,
-        transform: `rotate(-40 ${xs(i)} ${y1 + 18})` }, [y]));
+      svg.append(el('text', flat
+        ? { x: xs(i), y: y1 + 20, 'text-anchor': 'middle',
+            'font-size': 12.5, fill: mut }
+        : { x: xs(i) + 4, y: y1 + 16, 'text-anchor': 'end',
+            'font-size': 12.5, fill: mut,
+            transform: `rotate(-35 ${xs(i) + 4} ${y1 + 16})` }, [y]));
     });
     if (yTitle) svg.append(el('text', { x: x0 - 9, y: y0 - 4,
       'text-anchor': 'end', 'font-size': 12.5, fill: mut }, [yTitle]));
@@ -344,7 +364,7 @@
 
   /* ---- line chart ---------------------------------------------------- */
   function lineChart({ years, series, fmt = money, yTitle, height = 380,
-                       zero = true, xEvery = 1, margin, yMax }) {
+                       zero = true, xEvery = 1, margin, yMax, onLineDblClick }) {
     return (plot, tip, legend, w) => {
       const f = frame(w, height, { margin:
         Object.assign({ t: 14, r: 60, b: 46, l: 62 }, margin || {}) });
@@ -352,6 +372,11 @@
       if (!vals.length) {
         plot.append(el('div', { class: 'empty' },
           ['Nothing to plot for this selection.']));
+        return;
+      }
+      if (vals.every(v => v === 0)) {
+        plot.append(el('div', { class: 'empty' },
+          ['Every printed amount is zero for this selection.']));
         return;
       }
       let lo = Math.min(...vals), hi = Math.max(...vals);
@@ -404,6 +429,19 @@
       attachCrosshair(f, plot, tip, years, xs, i =>
         series.filter(s => s.values[i] != null).map(s =>
           ({ k: s.name, v: fmt(s.values[i]), color: s.color, code: s.code })));
+      /* Double-click picks the line nearest the pointer in the nearest year. */
+      if (onLineDblClick) f.svg.addEventListener('dblclick', ev => {
+        const r = f.svg.getBoundingClientRect(), k = w / r.width;
+        const px = (ev.clientX - r.left) * k, py = (ev.clientY - r.top) * k;
+        let yi = 0;
+        years.forEach((_, i) => {
+          if (Math.abs(xs(i) - px) < Math.abs(xs(yi) - px)) yi = i; });
+        let best = null, bd = Infinity;
+        series.forEach(s => { const v = s.values[yi];
+          if (v != null && Math.abs(ys(v) - py) < bd)
+            { bd = Math.abs(ys(v) - py); best = s; } });
+        if (best) { ev.preventDefault(); onLineDblClick(best); }
+      });
     };
   }
 
@@ -521,9 +559,8 @@
           const tr = (R + R0) / 2;
           svg.append(el('text', { x: cx + tr * Math.cos(mid),
             y: cy + tr * Math.sin(mid) + 4, 'font-size': 13,
-            fill: '#151515', stroke: '#ffffff', 'stroke-width': 3,
-            'paint-order': 'stroke', 'stroke-linejoin': 'round',
-            'pointer-events': 'none', 'font-weight': 700,
+            fill: inkOn(it.color), 'pointer-events': 'none',
+            'font-weight': 600, 'font-variant-numeric': 'tabular-nums',
             'text-anchor': 'middle' }, [pctf(frac * 100)]));
         }
         a0 = a1;
