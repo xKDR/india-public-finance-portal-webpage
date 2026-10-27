@@ -2,7 +2,8 @@
    text-buttons in the figure head (table toggle, downloads). */
 
 .fig{margin:0 0 24px;background:var(--surface);border:1px solid var(--edge);
-  padding:22px 24px 16px}
+  padding:22px 24px 16px;min-width:0;max-width:100%;box-sizing:border-box}
+.fig .tbl-cap{white-space:normal;overflow-wrap:anywhere;line-height:1.5}
 .fig-head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;flex-wrap:wrap}
 .fig-title{font-size:19px;font-weight:650}
 .fig-sub{font-size:15px;color:var(--muted)}
@@ -21,6 +22,8 @@
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 2px;
   font-size:15.5px;color:var(--ink-2)}
 .legend .lg-it{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.legend .lg-it{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.legend .lg-it .sw,.legend .lg-it .hcode{flex-shrink:0}
 .legend .lg-it.click{cursor:pointer}
 .legend .lg-it.click:hover{color:var(--ink);text-decoration:underline;
   text-underline-offset:3px}

@@ -11,14 +11,13 @@
 <link rel="stylesheet" href="css/charts.css?v=sync10">
 <link rel="stylesheet" href="css/compare.css?v=sync10">
 </head>
-<body>
+<body><aside style="padding:8px 16px;background:#fff4cf;color:#493a14;font:13px system-ui">Local recovered preview · Budget data rebuilt from GitHub. Raw extraction values may differ from live processed data. Detailed quality badges and deeper comparison search are pending; see local README.</aside>
 <div class="page">
 <div class="site-head">
   <a class="brand" href="../index.html">India Public Finance<span class="dot">·</span>Portal</a>
   <nav aria-label="Site">
     <a href="index.html">States</a>
-    <a href="ka/explore.html">Karnataka</a>
-    <a href="tn/explore.html">Tamil Nadu</a>
+        <a href="../explore.html">Explore</a>
     <a href="compare.html" aria-current="page">Compare</a>
     <a href="../resources/guide.html">Guide</a>
     <a href="about.html">About</a>
@@ -63,8 +62,15 @@
   </div>
 
   <div class="foot">
-    <p>Colour carries the state and dash the measure (solid BE, dashed RE,
-      dotted actuals). A break in a line is a year not printed.</p>
+    <p>Colour identifies the state. BE: solid line and circles;
+      RE: long dashes and triangles; actuals: dots and squares.
+      Gaps indicate unavailable
+      data or an undefined percentage, rather than a change in magnitude.</p>
+    <details><summary>How is percentage view calculated?</summary>
+      <p>Percentage view divides each head by its state's total for the
+        same measure and fiscal year: actuals by total actuals, revised by
+        total revised, and budget by total budget. It is a spending share,
+        not the percentage of the original budget spent.</p></details>
     <p>Amounts are each state's printed volumes summed from additive leaf
       rows, shown in ₹ crore. <a href="about.html">Method and data
       notes</a>.</p>

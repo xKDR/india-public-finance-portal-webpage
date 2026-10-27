@@ -49,6 +49,7 @@
 .ccard{background:var(--surface);border:1px solid var(--edge);
   padding:22px 24px 22px;display:flex;
   flex-direction:column;gap:8px;min-width:0}
+.ccard .cchart{min-width:0;width:100%}
 .ccard .chead{display:flex;flex-wrap:wrap;align-items:center;gap:7px 10px}
 .ccard .chead .code{font-family:ui-monospace,Menlo,monospace;font-size:12px;
   font-weight:700;color:var(--accent)}

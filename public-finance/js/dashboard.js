@@ -19,8 +19,7 @@
   const fmt = v => '₹' + Engine.money(crore(v)) + ' cr';
   const col = () => ({ m: S.m, f: S.f });
 
-  const MEAS = [['be', 'Budget estimate'], ['re', 'Revised estimate'],
-    ['ac', 'Actuals'], ['bp', 'BE restated']];
+  const MEAS = Engine.MEAS;
 
   function model() { return S.mj ? models.get(S.mj) : null; }
 
@@ -99,9 +98,14 @@
       value: k.value, color: Engine.cssv('--bad'), drill: false }));
 
     const mlabel = MEAS.find(x => x[0] === S.m)[1];
+    const levelNames = !S.mj ? ['Major head'] : [...new Set(kids.map(k => {
+      const node = model().nodes[k.id];
+      return IX.levels.find(l => l.k === node.lv)?.label || node.lv;
+    }))];
     Engine.figure(host, {
       title: currentName(),
-      sub: mlabel + ' · ' + IX.fys[S.f] + ' · ₹ crore · share of parent',
+      sub: 'Displayed level: ' + (levelNames.join(' / ') || 'No lower level')
+        + ' · ' + mlabel + ' · ' + IX.fys[S.f],
       render: Engine.donutChart({
         items,
         fmt: v => Engine.money(crore(v)),
@@ -126,9 +130,11 @@
               k.value > 0 ? Engine.pctf(cum / tot * 100) : '–'];
           }), { leftCols: [1] });
       },
-      caption: rest.length && !S.showAll
-        ? 'The ring shows the ' + top.length + ' largest heads; click '
-          + '“Other” or open the table for the rest.' : null,
+      caption: 'Shares within '
+        + currentName() + '. Negative amounts, including recoveries, are excluded from the ring '
+        + 'and retained in the table. Click a head to show its next available '
+        + 'account level; breadcrumbs identify the selected branch. '
+        + (rest.length ? 'Other groups smaller heads; use the table for the complete list.' : ''),
     });
   }
 
@@ -179,6 +185,7 @@
   /* --------------------------------------------------------------- side */
   function drawSide() {
     const box = $('#dside-body');
+    if (!box) return;
     box.innerHTML = '';
     Engine.dropFigs(box);
     let getter, codesPath, pg = null, dms = null;
@@ -267,7 +274,7 @@
 
     /* the head's history: one hue, dash per measure */
     const hue = Engine.cssv('--s1');
-    const hist = [['be', 'Budget'], ['re', 'Revised'], ['ac', 'Actuals']]
+    const hist = Engine.MEAS
       .map(([m, label]) => ({
         name: label, dash: Engine.DASH[m], color: hue,
         values: IX.fys.map((_, f2) =>
@@ -280,7 +287,7 @@
       box.append(mount);
       Engine.figure(mount, {
         title: 'Over time',
-        sub: '₹ crore · BE solid, RE dashed, Actuals dotted',
+        sub: '₹ crore',
         render: Engine.lineChart({ years: IX.fys, series: hist,
           fmt: Engine.money, height: 200,
           margin: { l: 48, r: 42, b: 38 },
@@ -318,7 +325,7 @@
     MEAS.forEach(([k, label]) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.textContent = label;
+      b.append(Engine.measureKey(k), document.createTextNode(label));
       b.dataset.v = k;
       b.setAttribute('aria-pressed', String(S.m === k));
       b.onclick = () => {
@@ -343,7 +350,7 @@
 
   function loadHash() {
     const h = Common.readHash();
-    if (h.m && ['be', 're', 'ac', 'bp'].includes(h.m)) S.m = h.m;
+    if (h.m && ['be', 're', 'ac'].includes(h.m)) S.m = h.m;
     if (h.f && IX.fys.includes(h.f)) S.f = IX.fys.indexOf(h.f);
     return h.p || null;
   }

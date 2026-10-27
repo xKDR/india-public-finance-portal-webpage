@@ -118,3 +118,4 @@ button.chip:hover{filter:brightness(.96)}
 /* .field input[type="text"] (above) resets padding; keep room for the
    search icon wherever a searchbox sits inside a .field. */
 .field .searchbox input{padding-left:32px;max-width:none}
+.controls [hidden]{display:none!important}

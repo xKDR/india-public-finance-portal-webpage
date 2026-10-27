@@ -26,16 +26,16 @@
     const fbe = latest('be');
     if (fbe >= 0) {
       out.be = { f: fbe, v: get('be', fbe) };
-      const prev = get('be', fbe - 1) || get('bp', fbe - 1);
+      const prev = get('be', fbe - 1);
       if (prev) out.growth = { f: fbe, pct: (get('be', fbe) / prev - 1) * 100 };
     }
     /* execution: latest year with both actuals and a BE to compare against */
     for (let f = nf - 1; f >= 0; f--) {
-      const ac = get('ac', f), be = get('be', f) || get('bp', f);
+      const ac = get('ac', f), be = get('be', f);
       if (ac && be) { out.exec = { f, pct: ac / be * 100, ac, be }; break; }
     }
     for (let f = nf - 1; f >= 0; f--) {
-      const re = get('re', f), be = get('be', f) || get('bp', f);
+      const re = get('re', f), be = get('be', f);
       if (re && be) { out.rev = { f, pct: (re / be - 1) * 100, re, be }; break; }
     }
     /* 5y CAGR of actuals (or as many years as exist, min 3). A base year
@@ -83,7 +83,7 @@
   /* Per-year execution % (Actuals / BE) across all fiscal years. */
   function execSeries(get, ix) {
     return ix.fys.map((_, f) => {
-      const ac = get('ac', f), be = get('be', f) || get('bp', f);
+      const ac = get('ac', f), be = get('be', f);
       return ac && be ? ac / be * 100 : null;
     });
   }

@@ -134,7 +134,6 @@
     const fi = y => ix.fys.indexOf(fy(y));
     return [
       { m: 'ac', f: fi(s - 2), label: 'Accounts ' + fy(s - 2) },
-      { m: 'bp', f: fi(s - 1), label: 'BE ' + fy(s - 1) },
       { m: 're', f: fi(s - 1), label: 'RE ' + fy(s - 1) },
       { m: 'be', f: fi(s), label: 'BE ' + fy(s) },
     ];
@@ -148,7 +147,6 @@
       { m: 'be', f0, f1, label: 'BE · ' + lab },
       { m: 're', f0, f1, label: 'RE · ' + lab },
       { m: 'ac', f0, f1, label: 'Accounts · ' + lab },
-      { m: 'bp', f0, f1, label: 'BE restated · ' + lab },
     ];
   }
 

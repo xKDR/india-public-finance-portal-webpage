@@ -15,8 +15,7 @@
   const $ = s => document.querySelector(s);
   const ROOT = PORTAL.root, ST = PORTAL.state;
   const MAX = 8;
-  const MEAS = [['be', 'Budget'], ['re', 'Revised'], ['ac', 'Actuals'],
-    ['bp', 'BE restated']];
+  const MEAS = Engine.MEAS;
   const DEPTH = { sm: 1, mn: 2, sh: 3, dh: 4, lf: 5 };
 
   let IX = null;
@@ -237,7 +236,7 @@
         if (!vals) { pending = true; continue; }
         out.push({
           key, mk, values: vals,
-          name: displayName(key), code: displayCode(key),
+          name: displayName(key) + ' · ' + MEAS.find(m => m[0] === mk)[1], code: displayCode(key),
           color: `var(--s${(S.slot.get(key) ?? 0) + 1})`,
           dash: Engine.DASH[mk],
         });
@@ -289,9 +288,7 @@
         }
         return Engine.table(cols, rows, { leftCols: [1] });
       },
-      caption: 'Dash carries the measure (solid BE, dashed RE, dotted '
-        + 'Actuals); colour carries the head. A break in a line is a year '
-        + 'nothing was printed.',
+      caption: Engine.MEASURE_HELP + ' Colour identifies the head. Gaps indicate unavailable data.',
     });
   }
 
@@ -463,17 +460,7 @@
     for (const [mk, label] of MEAS) {
       const b = document.createElement('button');
       b.type = 'button';
-      const key = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      key.setAttribute('class', 'key');
-      key.setAttribute('viewBox', '0 0 20 8');
-      const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      ln.setAttribute('x1', 0); ln.setAttribute('y1', 4);
-      ln.setAttribute('x2', 20); ln.setAttribute('y2', 4);
-      ln.setAttribute('stroke', 'currentColor');
-      ln.setAttribute('stroke-width', 2);
-      if (Engine.DASH[mk]) ln.setAttribute('stroke-dasharray', Engine.DASH[mk]);
-      key.append(ln);
-      b.append(key, document.createTextNode(label));
+      b.append(Engine.measureKey(mk), document.createTextNode(label));
       b.dataset.v = mk;
       b.setAttribute('aria-pressed', String(S.measures.includes(mk)));
       b.onclick = () => {

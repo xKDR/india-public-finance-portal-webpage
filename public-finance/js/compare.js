@@ -33,9 +33,8 @@
   'use strict';
 
   const $ = s => document.querySelector(s);
-  const MEAS = [['be', 'Budget'], ['re', 'Revised'], ['ac', 'Actuals'],
-    ['bp', 'BE restated']];
-  const SCALES = [['cr', '₹ crore'], ['pct', '% of own budget'],
+  const MEAS = Engine.MEAS;
+  const SCALES = [['cr', '₹ crore'], ['pct', '% of state total'],
     ['idx', 'Indexed']];
 
   let CIX = null;               // compare/index.json
@@ -149,7 +148,7 @@
 
   /* Native-unit values over the current window [S.from..S.to], one state +
      measure. A year absent from that state's fys, or unprinted (outside
-     ix.spans[mk]), or a literal zero, is null; a broken line. */
+     ix.spans[mk]) is null. A printed zero remains a zero. */
   function windowRaw(st, rec, mk) {
     const ix = IXS[st];
     const sp = ix.spans[mk];
@@ -158,14 +157,12 @@
       if (yix == null) return null;
       if (!sp || yix < sp[0] || yix > sp[1]) return null;
       const raw = (rec.vals[mk] || [])[yix];
-      return raw ? raw : null;
+      return Number.isFinite(raw) ? raw : null;
     });
   }
 
-  /* % of that state's own same-measure total, same year. A state total
-     that collapses under 0.6x its neighbouring years is almost always a
-     truncated source volume (TN totals have holes that fake spikes), not
-     a real crash; treated as missing rather than plotted. */
+  /* Share of the same state's same-measure total in the same fiscal year.
+     Changes in magnitude alone are not evidence of missing data. */
   function pctValues(l) {
     const ix = IXS[l.st];
     const totObj = ix.totals[l.mk] || {};
@@ -174,10 +171,9 @@
       if (v == null) return null;
       const yix = STATE_YIX[l.st].get(win[i]);
       const t = totObj[yix];
-      if (!t) return null;
-      const nb = [totObj[yix - 1], totObj[yix + 1]].filter(x => x);
-      if (nb.length && t < 0.6 * Math.max(...nb)) return null;
-      return v / t * 100;
+      if (!Number.isFinite(t) || t === 0) return null;
+      const share = v / t * 100;
+      return Number.isFinite(share) ? share : null;
     });
   }
 
@@ -232,19 +228,7 @@
     for (const [mk, label] of MEAS) {
       const b = document.createElement('button');
       b.type = 'button';
-      const key = document.createElementNS(
-        'http://www.w3.org/2000/svg', 'svg');
-      key.setAttribute('class', 'key');
-      key.setAttribute('viewBox', '0 0 20 8');
-      const ln = document.createElementNS(
-        'http://www.w3.org/2000/svg', 'line');
-      ln.setAttribute('x1', 0); ln.setAttribute('y1', 4);
-      ln.setAttribute('x2', 20); ln.setAttribute('y2', 4);
-      ln.setAttribute('stroke', 'currentColor');
-      ln.setAttribute('stroke-width', 2);
-      if (Engine.DASH[mk]) ln.setAttribute('stroke-dasharray', Engine.DASH[mk]);
-      key.append(ln);
-      b.append(key, document.createTextNode(label));
+      b.append(Engine.measureKey(mk), document.createTextNode(label));
       b.dataset.v = mk;
       b.setAttribute('aria-pressed', String(S.measures.includes(mk)));
       b.onclick = () => {
@@ -527,8 +511,11 @@
           MEAS.find(m => m[0] === l.mk)[1]].concat(l.values.map(cardFmt)));
         return Engine.table(cols, rows, { leftCols: [1] });
       },
-      caption: 'Colour carries the state, dash the measure; a break in a '
-        + 'line is a year not printed.',
+      caption: 'Colour identifies the state; line pattern and marker identify '
+        + 'the measure. Gaps mean unavailable data or a zero/missing state '
+        + 'total in percentage view. A printed zero is plotted at zero. '
+        + (S.scale === 'pct' ? 'Each value is divided by that state’s total '
+          + 'for the same measure and fiscal year. Source coverage can vary.' : ''),
     });
 
     const tableHost = document.createElement('div');

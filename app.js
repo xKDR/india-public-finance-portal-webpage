@@ -6,7 +6,7 @@
    the data. window.PORTAL points at ./public-finance/, so Store resolves to
    ./public-finance/data/. */
 
-const STATE = "ka";
+let STATE = new URLSearchParams(location.search).get('exploreState') === 'tn' ? 'tn' : 'ka';
 const TABLE_FILES = [
   ["budget_<year>.csv", "Document-shaped budget rows with account codes, financial amounts, and source page references."],
   ["checks_<year>.csv", "One arithmetic comparison per account key and financial column."],
@@ -40,6 +40,8 @@ GROUP BY 1
 ORDER BY amount_in_inr_lakh DESC;`;
 
 const $ = (s) => document.querySelector(s);
+const exploreTemplate = document.querySelector('.pf-explore')?.innerHTML || '';
+let stateSwitchToken=0;
 const crore = (v) => v == null ? null : v / IX.crore_div;
 
 let IX = null;                 // the Karnataka index
@@ -50,6 +52,112 @@ const models = new Map();      // major code -> wrapped shard
 const open = new Set();        // expanded row keys
 let filterQuery = "";
 let renderToken = 0;
+const selectedHeads = new Map();
+let selectedYear = null;
+let selectedAllYears = false;
+let selectedYears = new Set();
+const levelLabels = {mj:'Major head',sm:'Sub-major head',mn:'Minor head',sh:'Sub-head',dh:'Detailed head',lf:STATE==='tn'?'Sub-detailed head':'Object head'};
+const normalizeHead = s => String(s || '').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+
+function aggregateSelectedHead(model, entry, specs) {
+  const ids = new Set(model.nodes.filter(n => n.lv === entry.lv && n.code === entry.code
+    && normalizeHead(n.name) === normalizeHead(entry.name)).map(n => n.i));
+  const values = specs.map(() => 0);
+  const available = specs.map(() => false);
+  let matched = 0;
+  model.paths.forEach((p,i) => {
+    if(entry.lv !== 'mj' && !model.chains[i].some(id => ids.has(id))) return;
+    matched++;
+    specs.forEach((c,j) => {
+      if(Object.prototype.hasOwnProperty.call(p.d[c.m] || {},c.f))available[j]=true;
+      values[j] += Model.pval(p,c);
+    });
+  });
+  return {values, available, matched};
+}
+
+function selectedSpecs(year=selectedYear) {
+  return ['be','re','ac'].map(m => ({m,f:IX.fys.indexOf(year)}));
+}
+
+function selectedTableRows() {
+  const years=IX.fys.filter(year=>selectedYears.has(year));
+  return [...selectedHeads.entries()].flatMap(([id,r])=>years.map(year=>({
+    ...r,id,year,...aggregateSelectedHead(r.model,r,selectedSpecs(year))
+  })));
+}
+
+function renderSelectedHeads() {
+  $('#selectedHeads').hidden = selectedHeads.size === 0;
+  $('#selectedRows').innerHTML=selectedTableRows().map(r => {
+    const specs=selectedSpecs(r.year);
+    const major=IX.majors.find(m => m.c===r.major);
+    const amounts=r.values.map((v,j)=>Model.colExists(IX,specs[j]) && r.available[j]
+      ? Number(crore(v)).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–');
+    return `<tr><th scope="row">${esc(r.code)} · ${esc(r.name)}<small class="selected-level">${esc(levelLabels[r.lv]||r.lv)}</small></th><td>${esc(r.major)} · ${esc(major?.n || '')}</td><td>${esc(r.year)}</td>${amounts.map(v=>`<td class="pf-num">${v}</td>`).join('')}<td><button type="button" class="tool-button" data-remove-head="${esc(r.id)}" aria-label="Remove ${esc(r.name)} under ${esc(r.major)} from all years">Remove head</button></td></tr>`;
+  }).join('');
+}
+
+async function addSelectedHead(entry, major) {
+  const requestedState=STATE;
+  const id=JSON.stringify([major,entry.lv,entry.code,normalizeHead(entry.name)]);
+  if(selectedHeads.has(id)){$('#selectedStatus').textContent='This head is already in the table.';return;}
+  $('#selectedHeads').hidden=false;
+  $('#selectedStatus').textContent=`Loading ${entry.name} under ${major}…`;
+  try {
+    const model=await ensureModel(major);
+    if(STATE!==requestedState)return;
+    const result=aggregateSelectedHead(model,entry,selectedSpecs());
+    if(!result.matched)throw Error('No matching repository detail lines were found.');
+    selectedHeads.set(id,{...entry,major,model,...result});
+    renderSelectedHeads();
+    $('#selectedStatus').textContent=`${selectedHeads.size} selected head${selectedHeads.size===1?'':'s'}. Search again to add another.`;
+    $('#selectedHeads').scrollIntoView({block:'nearest',behavior:'smooth'});
+  } catch(e) {$('#selectedStatus').textContent=`Could not add this head: ${e.message}`;}
+}
+
+function setupSelectedHeads() {
+  // Start at the latest year with all three measures available.
+  const last=Math.min(IX.spans.be[1],IX.spans.re[1],IX.spans.ac[1]);
+  selectedYear=IX.fys[last];
+  selectedYears=new Set([selectedYear]);
+  $('#yearPickerOptions').innerHTML='<label><input type="checkbox" data-year="all"> All years</label>'
+    + IX.fys.map(y=>`<label><input type="checkbox" data-year="${y}"${y===selectedYear?' checked':''}> ${y}</label>`).join('');
+  const syncYearPicker=()=>{
+    selectedAllYears=selectedYears.size===IX.fys.length;
+    $('#yearPickerSummary').textContent=selectedAllYears?'All years':selectedYears.size===1?[...selectedYears][0]:selectedYears.size?`${selectedYears.size} years selected`:'Select years';
+    $('#downloadSelected').disabled=selectedYears.size===0;
+    $('#yearPickerOptions').querySelectorAll('input').forEach(input=>{
+      input.checked=input.dataset.year==='all'?selectedAllYears:selectedYears.has(input.dataset.year);
+      if(input.dataset.year==='all')input.indeterminate=selectedYears.size>0&&!selectedAllYears;
+    });
+  };
+  syncYearPicker();
+  $('#yearPickerOptions').addEventListener('change',e=>{
+    const year=e.target.dataset.year;if(!year)return;
+    if(year==='all')selectedYears=e.target.checked?new Set(IX.fys):new Set();
+    else if(e.target.checked)selectedYears.add(year);else selectedYears.delete(year);
+    syncYearPicker();
+    renderSelectedHeads();
+    $('#selectedStatus').textContent=selectedYears.size?`Showing ${selectedYears.size} fiscal year${selectedYears.size===1?'':'s'} for each selected head.`:'Select at least one fiscal year.';
+  });
+  $('#selectedRows').addEventListener('click',e=>{
+    const b=e.target.closest('[data-remove-head]');if(!b)return;
+    selectedHeads.delete(b.dataset.removeHead);renderSelectedHeads();
+  });
+  $('#clearSelected').addEventListener('click',()=>{selectedHeads.clear();renderSelectedHeads();});
+  $('#downloadSelected').addEventListener('click',()=>{
+    const rows=[['state','fiscal_year','major_head_code','major_head_name','head_code','head_name','level','BE_INR_crore','RE_INR_crore','Actuals_INR_crore','repository_commit']];
+    for(const r of selectedTableRows()){
+      const specs=selectedSpecs(r.year);
+      rows.push([STATE,r.year,r.major,IX.majors.find(m=>m.c===r.major)?.n,r.code,r.name,levelLabels[r.lv],...r.values.map((v,j)=>Model.colExists(IX,specs[j])&&r.available[j]?v/IX.crore_div:''),'371c1e5d79a7f2dfcb8d55f21867330384093910']);
+    }
+    const csv=rows.map(row=>row.map(csvCell).join(',')).join('\r\n')+'\r\n';
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    const a=document.createElement('a');a.href=url;a.download=`selected-heads-${STATE}-${selectedAllYears?'all-years':'selected-years'}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('#selectedStatus').textContent=`CSV prepared: ${rows.length-1} rows for ${selectedHeads.size} selected heads.`;
+  });
+}
 
 const key = (mj, trail) => mj + ":" + trail.join(">");
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -110,32 +218,40 @@ function csvCell(value) {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-function exportVisibleAccounts() {
+async function exportVisibleAccounts() {
   if (!IX) return;
   const query = filterQuery.trim().toLowerCase();
   const specs = cols();
-  const rows = IX.majors
-    .filter((m) => !query || m.c.includes(query) || (m.n || "").toLowerCase().includes(query))
-    .sort((a, b) => Model.mval(b, specs[3]) - Model.mval(a, specs[3]));
+  const exportYear=DY;
+  const rows=[];
+  for(const tr of document.querySelectorAll('#pfRows tr[data-mj]')){
+    const mj=tr.dataset.mj;
+    const trail=tr.dataset.trail?tr.dataset.trail.split(',').map(Number):[];
+    const major=IX.majors.find(m=>m.c===mj);
+    if(!trail.length){rows.push({c:mj,n:major.n,values:specs.map(c=>Model.mval(major,c))});continue;}
+    const model=await ensureModel(mj);
+    rows.push({c:[mj,...trail.map(id=>model.nodes[id].code)].join('-'),
+      n:model.nodes[trail.at(-1)].name,values:Model.branch(model,trail,specs).v});
+  }
   const header = ["state", "document_year", "account_code", "account_name", ...specs.map((c) => c.label)];
-  const body = rows.map((m) => [STATE, DY, m.c, m.n || "", ...specs.map((c) => {
+  const body = rows.map((m) => [STATE, exportYear, m.c, m.n || "", ...specs.map((c,i) => {
     if (!Model.colExists(IX, c)) return "";
-    const raw = Model.mval(m, c);
-    return Number.isFinite(raw) ? raw / 100 : "";
+    const raw = m.values[i];
+    return Number.isFinite(raw) ? raw / IX.crore_div : "";
   })]);
   const csv = [header, ...body].map((row) => row.map(csvCell).join(",")).join("\n") + "\n";
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `india-public-finance-${STATE}-${DY}-filtered-heads.csv`;
+  link.download = `india-public-finance-${STATE}-${exportYear}-visible-heads.csv`;
   link.style.display = "none";
   document.body.appendChild(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   const status = $("#exportStatus");
-  if (status) status.textContent = `${rows.length} filtered heads prepared as CSV`;
+  if (status) status.textContent = `${rows.length} visible rows prepared as CSV`;
 }
 
 /* --------------------------------------------------------------- data */
@@ -195,11 +311,12 @@ function cols() {
 }
 
 async function ensureModel(mj) {
+  const requestedState=STATE;
   let model = models.get(mj);
   if (model) return model;
   const shard = await Store.shard(STATE, mj);
   model = Model.wrap(shard);
-  models.set(mj, model);
+  if(requestedState===STATE)models.set(mj, model);
   return model;
 }
 
@@ -230,7 +347,7 @@ function rowHtml({ mj, trail, code, name, depth, values, hasKids }) {
 
 function walk(mj, model, trail, depth, colSpecs, out) {
   const children = Model.childrenOf(model, trail, colSpecs, DY);
-  const items = [...children.entries()].sort((a, b) => b[1].v[3] - a[1].v[3] || a[1].v[0] - b[1].v[0]);
+  const items = [...children.entries()].sort((a, b) => b[1].v[2] - a[1].v[2] || a[1].v[0] - b[1].v[0]);
   for (const [id, rec] of items) {
     const node = model.nodes[id];
     const childTrail = trail.concat(id);
@@ -251,7 +368,7 @@ async function renderTree() {
 
   const majors = IX.majors
     .filter((m) => !q || m.c.includes(q) || (m.n || "").toLowerCase().includes(q))
-    .sort((a, b) => Model.mval(b, colSpecs[3]) - Model.mval(a, colSpecs[3]));
+    .sort((a, b) => Model.mval(b, colSpecs[2]) - Model.mval(a, colSpecs[2]));
 
   const out = [];
   for (const m of majors) {
@@ -268,7 +385,7 @@ async function renderTree() {
   const shown = majors.length;
   note.textContent = q
     ? `${shown} of ${total} major heads match "${filterQuery.trim()}".`
-    : `${total} major heads. Open one to see the levels beneath it.`;
+    : `${total} major heads · document year ${DY}. Open one to see the levels beneath it.`;
   body.innerHTML = out.join("") || '<tr><td class="l pf-empty" colspan="5">No account head matches that.</td></tr>';
 }
 
@@ -290,43 +407,64 @@ function toggleRow(tr) {
 async function pickSearchEntry(entry) {
   const mj = entry.lv === "mj" ? entry.code : (entry.majors && entry.majors[0]);
   if (!mj) return;
-  if (entry.lv === "mj") {
-    filterQuery = "";
-    $("#pfSearch").querySelector("input").value = "";
-    open.add(key(mj, []));
-    await renderTree();
-    document.querySelector(`[data-key="${CSS.escape(key(mj, []))}"]`)?.scrollIntoView({ block: "center" });
-    return;
-  }
-  const model = await ensureModel(mj);
-  const id = findNode(model, entry.lv, entry.code, entry.name);
-  if (id < 0) return;
-  for (const chain of model.chains) {
-    const at = chain.indexOf(id);
-    if (at < 0) continue;
-    filterQuery = "";
-    $("#pfSearch").querySelector("input").value = "";
-    open.add(key(mj, []));
-    for (let a = 0; a < at; a++) open.add(key(mj, chain.slice(0, a + 1)));
-    const trail = chain.slice(0, at + 1);
-    open.add(key(mj, trail));
-    await renderTree();
-    document.querySelector(`[data-key="${CSS.escape(key(mj, trail))}"]`)?.scrollIntoView({ block: "center" });
-    return;
-  }
+  await addSelectedHead(entry,mj);
+  filterQuery='';
+  $('#pfSearch').querySelector('input').value='';
+  renderTree();
+}
+
+function setupUseCase() {
+  if(!$('#seeUseCase'))return;
+  $('#seeUseCase').addEventListener('click',()=>{
+    const button=$('#seeUseCase'),body=$('#drugUseCase');
+    body.hidden=!body.hidden;button.setAttribute('aria-expanded',String(!body.hidden));
+    button.textContent=body.hidden?'See use case':'Hide use case';
+  });
+  $('#collapseUseCase').addEventListener('click',()=>{
+    $('#drugUseCase').hidden=true;
+    const button=$('#seeUseCase');
+    button.setAttribute('aria-expanded','false');
+    button.textContent='See use case';
+    button.focus({preventScroll:true});
+    button.scrollIntoView({block:'center',behavior:'instant'});
+  });
 }
 
 function setupExplorer() {
-  const select = $("#pfYear");
-  select.innerHTML = IX.doc_years.map((y) => `<option value="${y}">${y}</option>`).join("");
-  DY = IX.doc_years[IX.doc_years.length - 1];
-  select.value = DY;
-  select.addEventListener("change", () => {
-    DY = select.value;
-    open.clear();
-    setHeaders(cols());
-    renderTree();
+  $('.explore-state-tabs').addEventListener('click',async e=>{
+    const tab=e.target.closest('[data-explore-state]');if(!tab)return;
+    e.preventDefault();
+    const next=tab.dataset.exploreState;if(next===STATE)return;
+    const token=++stateSwitchToken;
+    const tabsTop=$('.explore-state-tabs').getBoundingClientRect().top;
+    $('.pf-explore').setAttribute('aria-busy','true');
+    try{
+      const index=await Store.index(next);if(token!==stateSwitchToken)return;
+      STATE=next;IX=index;levelLabels.lf=next==='tn'?'Sub-detailed head':'Object head';
+      models.clear();open.clear();selectedHeads.clear();selectedYears.clear();
+      selectedAllYears=false;filterQuery='';renderToken++;
+      $('.pf-explore').innerHTML=exploreTemplate;
+      const url=new URL(location.href);url.searchParams.set('exploreState',next);
+      history.replaceState(null,'',url);
+      setupExplorer();
+      $('#pfMeta').textContent=`${IX.name}: ${Engine.nfIN(IX.n_leaf_rows)} detail rows across ${IX.doc_years.length} document years, with ${Engine.nfIN(IX.majors.length)} major heads in the explorer.`;
+      const restorePosition=()=>{
+        if(token!==stateSwitchToken)return;
+        const delta=$('.explore-state-tabs').getBoundingClientRect().top-tabsTop;
+        window.scrollTo({top:window.scrollY+delta,behavior:'instant'});
+      };
+      restorePosition();
+      requestAnimationFrame(()=>requestAnimationFrame(restorePosition));
+    }catch(err){$('#pfNote').textContent='Could not switch state: '+err.message;}
+    finally{if(token===stateSwitchToken)$('.pf-explore').removeAttribute('aria-busy');}
   });
+  document.querySelectorAll('[data-explore-state]').forEach(tab=>{
+    if(tab.dataset.exploreState===STATE)tab.setAttribute('aria-current','page');
+    else tab.removeAttribute('aria-current');
+  });
+  $('#accountUnitHint').textContent=`Source amounts for ${IX.name} are in ${STATE==='tn'?'INR thousand':'INR lakh'}; displayed amounts are converted to ₹ crore. Open a row to see the account levels beneath it. A dash means unavailable data.`;
+  setupSelectedHeads();
+  DY = IX.doc_years[IX.doc_years.length - 1];
 
   $("#pfRows").addEventListener("click", (ev) => {
     const tr = ev.target.closest("tr.pf-can");
@@ -342,6 +480,12 @@ function setupExplorer() {
   }
 
   const index = Search.makeIndex(STATE);
+  const baseQuery=index.query.bind(index);
+  index.query=(q,limit=12)=>{
+    const seen=new Set();
+    return baseQuery(q,10000).flatMap(e=>(e[3]||[]).map(mj=>[e[0],e[1],e[2],[mj],e[4]]))
+      .filter(e=>{const k=JSON.stringify([e[3][0],e[2],e[0],normalizeHead(e[1])]);if(seen.has(k))return false;seen.add(k);return true;}).slice(0,limit);
+  };
   Search.attach($("#pfSearch"), index, {
     global: () => true,
     onPick: pickSearchEntry
@@ -378,9 +522,12 @@ async function setupHealthExample() {
   const select = $("#healthYear");
   if (!host || !select) return;
   try {
-    const response = await fetch("./resources/health-example.json");
-    if (!response.ok) throw new Error("Example unavailable");
-    const data = await response.json();
+    const exampleIndex=await Store.index('ka');
+    const heads=exampleIndex.majors.filter(m=>['2210','2211'].includes(m.c));
+    const data={rows:exampleIndex.fys.map((fiscal_year,f)=>{
+      const value=m=>{const span=exampleIndex.spans[m];if(!span||f<span[0]||f>span[1])return null;return heads.reduce((sum,h)=>sum+(h.d[m]?.[f]||0),0)/exampleIndex.crore_div;};
+      return {fiscal_year,be:value('be'),re:value('re'),actuals:value('ac')};
+    })};
     const rows = (data.rows || []).filter((r) =>
       typeof r.fiscal_year === "string" && [r.be, r.re, r.actuals].every(Number.isFinite) && r.be > 0);
     if (!rows.length) throw new Error("No example years");
@@ -406,37 +553,27 @@ async function setupHealthExample() {
 
 /* ---------------------------------------------------------------- boot */
 setupHealthExample();
-const stateRequest = Store.states()
-  .then((stateList) => ({ stateList }))
-  .catch((error) => ({ error }));
-const qualityRequest = Store.quality(STATE)
-  .then((quality) => ({ quality }))
-  .catch((error) => ({ error }));
-
-Store.index(STATE)
-  .then((index) => {
-    IX = index;
+setupUseCase();
+// The landing-page examples and coverage describe Karnataka. State tabs
+// select only the Explore workspace and its repository-backed data.
+Promise.all([Store.index('ka'),Store.states().catch(()=>null),Store.quality('ka').catch(()=>null)])
+  .then(async ([index,stateList,quality]) => {
+    IX = index;QUALITY=quality;
+    STATE_META=stateList?.states?.find(s=>s.st==='ka')||null;
+    if($('#metrics')){
     renderMetrics();
     renderHeatmap();
     renderTables();
     renderCoverageList();
     renderChecks();
     setupSql();
+    }
+    IX=STATE==='ka'?index:await Store.index(STATE);
+    if($('.pf-explore')){
     setupExplorer();
     $("#pfMeta").textContent = `${IX.name}: ${Engine.nfIN(IX.n_leaf_rows)} detail rows across ${IX.doc_years.length} document years, with ${Engine.nfIN(IX.majors.length)} major heads in the explorer.`;
+    }
 
-    stateRequest.then(({ stateList }) => {
-      if (!stateList) return;
-      STATE_META = (stateList.states || []).find((s) => s.st === STATE || s.code === "KA") || null;
-      renderMetrics();
-    });
-
-    qualityRequest.then(({ quality, error }) => {
-      if (quality) QUALITY = quality;
-      renderMetrics();
-      renderHeatmap(Boolean(error));
-      renderCoverageList(Boolean(error));
-    });
   })
   .catch((err) => {
     const note = $("#pfNote");

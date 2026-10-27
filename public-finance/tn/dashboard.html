@@ -11,19 +11,18 @@
 <link rel="stylesheet" href="../css/charts.css?v=sync10">
 <link rel="stylesheet" href="../css/explorer.css?v=sync10">
 <style>
-.dlayout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;
+.dlayout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;
   align-items:start}
 @media (max-width:1020px){.dlayout{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
+<body><aside style="padding:8px 16px;background:#fff4cf;color:#493a14;font:13px system-ui">Local recovered preview · Budget data rebuilt from GitHub. Raw extraction values may differ from live processed data. Detailed quality badges and deeper comparison search are pending; see local README.</aside>
 <div class="page">
 <div class="site-head">
   <a class="brand" href="../../index.html">India Public Finance<span class="dot">·</span>Portal</a>
   <nav aria-label="Site">
     <a href="../index.html">States</a>
-    <a href="../ka/explore.html">Karnataka</a>
-    <a href="../tn/explore.html">Tamil Nadu</a>
+        <a href="../../explore.html">Explore</a>
     <a href="../compare.html">Compare</a>
     <a href="../../resources/guide.html">Guide</a>
     <a href="../about.html">About</a>
@@ -42,10 +41,7 @@
 
   <p class="kicker">Tamil Nadu · state finances</p>
   <h1>Composition dashboard</h1>
-  <p class="sub">Where the money goes, one ring at a time. Each doughnut
-    shows the children of the current head for the chosen year and measure.
-    Click a slice to open it, use the breadcrumbs to climb back. Hover any
-    slice for the exact numbers; every ring is also a table.</p>
+  <p class="sub">Expenditure composition for the selected fiscal year and measure. The initial view shows major heads. Select a slice to follow the account hierarchy: major → sub-major → minor → sub-head → detailed → sub-detailed head. Breadcrumbs and the displayed-level label identify the current branch. Percentages show each head’s share of its selected parent, excluding negative amounts such as recoveries. The table includes all amounts.</p>
 
   <div class="controls">
     <div class="field"><label>Fiscal year</label>
@@ -58,10 +54,6 @@
 
   <div class="dlayout">
     <div id="ring"></div>
-    <aside class="xside">
-      <h3 id="dside-title">Summary</h3>
-      <div id="dside-body"></div>
-    </aside>
   </div>
 
   <div class="foot">
@@ -78,6 +70,6 @@
 <script src="../js/model.js?v=sync10"></script>
 <script src="../js/stats.js?v=sync10"></script>
 <script src="../js/badges.js?v=sync10"></script>
-<script src="../js/dashboard.js?v=sync10"></script>
+<script src="../js/dashboard.js?v=no-summary-1"></script>
 </body>
 </html>

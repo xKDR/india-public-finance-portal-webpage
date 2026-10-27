@@ -93,14 +93,13 @@
     }
   </style>
 </head>
-<body>
+<body><aside style="padding:8px 16px;background:#fff4cf;color:#493a14;font:13px system-ui">Local recovered preview · Budget data rebuilt from GitHub. Raw extraction values may differ from live processed data. Detailed quality badges and deeper comparison search are pending; see local README.</aside>
 <div class="page">
   <div class="site-head">
     <a class="brand" href="../index.html">India Public Finance<span class="dot">&middot;</span>Portal</a>
     <nav aria-label="Site">
       <a href="../public-finance/index.html">States</a>
-      <a href="../public-finance/ka/explore.html">Karnataka</a>
-      <a href="../public-finance/tn/explore.html">Tamil Nadu</a>
+        <a href="../explore.html">Explore</a>
       <a href="../public-finance/compare.html">Compare</a>
       <a href="guide.html" aria-current="page">Guide</a>
       <a href="../public-finance/about.html">About</a>
@@ -316,7 +315,7 @@
           <thead><tr><th scope="col">Column</th><th scope="col">Description</th></tr></thead>
           <tbody>
             <tr><td><code>accounts_&lt;year&gt;_amount</code></td><td>Prior actuals (document year &minus; 2), in <code>amount_unit</code>.</td></tr>
-            <tr><td><code>budget_estimate_&lt;year&gt;_amount</code></td><td>Budget estimate. Each CSV has two: restated prior-year BE (year &minus; 1) and current-year BE (the document year).</td></tr>
+            <tr><td><code>budget_estimate_&lt;year&gt;_amount</code></td><td>Budget estimate for the fiscal year specified in the column name.</td></tr>
             <tr><td><code>revised_estimate_&lt;year&gt;_amount</code></td><td>Revised estimate (document year &minus; 1).</td></tr>
             <tr><td><code>amount_unit</code></td><td>Unit of all amounts. Value: <code>INR_lakh</code> (still source-unverified per volume).</td></tr>
           </tbody>

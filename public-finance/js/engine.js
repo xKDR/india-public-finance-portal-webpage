@@ -6,7 +6,7 @@
    downloaded SVG is self-contained.
 
    Encoding rules carried over: hue identifies the head, dash identifies the
-   measure (BE solid, RE 7,4, Actuals 2,3.5, restated BE 10,3,2,3); lines
+   measure (solid, long dash, dot, dash-dot), reinforced by markers; lines
    break at missing years rather than bridging them. */
 
 (function () {
@@ -14,7 +14,7 @@
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const SVG_TAGS = new Set(['svg', 'g', 'path', 'rect', 'circle', 'line',
-    'text', 'defs', 'clipPath', 'polyline', 'tspan', 'title']);
+    'text', 'defs', 'clipPath', 'polyline', 'polygon', 'tspan', 'title']);
 
   const $ = s => typeof s === 'string' ? document.querySelector(s) : s;
 
@@ -32,7 +32,30 @@
   const seriesColor = i => cssv(SERIES[i % SERIES.length]);
 
   /* Dash per measure; the portal-wide rule. */
-  const DASH = { be: '', re: '7,4', ac: '2,3.5', bp: '10,3,2,3' };
+  const DASH = { be: '', re: '12,6', ac: '1,7', bp: '12,4,2,4' };
+  const MEAS = [['be', 'BE'], ['re', 'RE'], ['ac', 'Actuals']];
+  const MEASURE_HELP = 'BE: solid line and circles; RE: long dashes and triangles; Actuals: dotted line and squares.';
+  function measureKey(m) {
+    const key = el('svg', { class: 'key', viewBox: '0 0 44 12',
+      width: 44, height: 12, 'aria-hidden': 'true' });
+    key.append(el('line', { x1: 1, y1: 6, x2: 43, y2: 6,
+      stroke: 'currentColor', 'stroke-width': 2.3,
+      'stroke-linecap': 'round', 'stroke-dasharray': DASH[m] || null }));
+    key.append(measureMarker(DASH[m], 22, 6, 'currentColor', cssv('--surface'), 3));
+    return key;
+  }
+
+  // Redundant measure encoding, shared by plots, legends and controls.
+  function measureMarker(dash, x, y, color, surface, r = 3.5) {
+    const attrs = { fill: color, stroke: surface, 'stroke-width': 1.2 };
+    if (dash === DASH.re) return el('polygon', { ...attrs,
+      points: `${x},${y-r-1} ${x+r+1},${y+r} ${x-r-1},${y+r}` });
+    if (dash === DASH.ac) return el('rect', { ...attrs,
+      x: x-r, y: y-r, width: 2*r, height: 2*r });
+    if (dash === DASH.bp) return el('polygon', { ...attrs,
+      points: `${x},${y-r-1} ${x+r+1},${y} ${x},${y+r+1} ${x-r-1},${y}` });
+    return el('circle', { ...attrs, cx: x, cy: y, r });
+  }
 
   /* ---------------------------------------------------------- formatting */
   const nfIN = (v, d = 0) => v == null ? '–' :
@@ -243,13 +266,17 @@
   function legendItems(legend, items, kind = 'line') {
     items.forEach(it => {
       const s = el('span', { class: 'lg-it' });
-      const swStyle = kind === 'sq'
-        ? `background:${it.color}`
-        : it.dash
-          ? `background:repeating-linear-gradient(90deg,${it.color} 0 5px,transparent 5px 9px)`
-          : `background:${it.color}`;
-      s.append(el('i', { class: 'sw' + (kind === 'sq' ? ' sq' : ''),
-        style: swStyle }));
+      if (kind === 'sq') s.append(el('i', { class: 'sw sq',
+        style: `background:${it.color}` }));
+      else {
+        const key = el('svg', { viewBox: '0 0 44 12', width: 44, height: 12,
+          'aria-hidden': 'true', style: 'flex:none;vertical-align:middle' });
+        key.append(el('line', { x1: 1, y1: 6, x2: 43, y2: 6,
+          stroke: it.color, 'stroke-width': 2.3,
+          'stroke-linecap': 'round', 'stroke-dasharray': it.dash || null }));
+        key.append(measureMarker(it.dash, 22, 6, it.color, cssv('--surface'), 3));
+        s.append(key);
+      }
       if (it.code) s.append(el('code', { class: 'hcode',
         title: it.codeTitle || null }, [it.code]));
       s.append(document.createTextNode(it.name));
@@ -328,7 +355,7 @@
         return;
       }
       let lo = Math.min(...vals), hi = Math.max(...vals);
-      /* yMax only ever raises the domain (a shared axis across cards) 
+      /* yMax only ever raises the domain (a shared axis across cards)
          a card whose own values exceed it still gets its own headroom. */
       if (yMax != null) hi = Math.max(hi, yMax);
       if (zero) lo = Math.min(0, lo);
@@ -344,14 +371,12 @@
           pen = true;
         });
         if (d) f.svg.append(el('path', { d, fill: 'none', stroke: s.color,
-          'stroke-width': s.dash ? 1.8 : 2.3,
+          'stroke-width': 2.3,
           'stroke-dasharray': s.dash || null,
           'stroke-linejoin': 'round', 'stroke-linecap': 'round',
           opacity: s.dash ? .9 : 1 }));
         s.values.forEach((v, i) => { if (v != null)
-          f.svg.append(el('circle', { cx: xs(i), cy: ys(v),
-            r: s.dash ? 2.6 : 3.6, fill: s.color, stroke: surf,
-            'stroke-width': 2 })); });
+          f.svg.append(measureMarker(s.dash, xs(i), ys(v), s.color, surf)); });
       });
 
       /* end labels on solid series, nudged apart */
@@ -493,38 +518,32 @@
         svg.append(path);
 
         if (frac >= 0.04) {
-          const lr = R + 9, tr = R + 15;
-          const lx = cx + lr * Math.cos(mid), ly = cy + lr * Math.sin(mid);
-          const tx = cx + tr * Math.cos(mid), ty = cy + tr * Math.sin(mid);
-          svg.append(el('line', { x1: cx + R * Math.cos(mid),
-            y1: cy + R * Math.sin(mid), x2: lx, y2: ly,
-            stroke: cssv('--axis'), 'stroke-width': 1 }));
-          const right = Math.cos(mid) >= 0;
-          const nm = it.name.length > 18
-            ? it.name.slice(0, 17) + '\u2026' : it.name;
-          const lab = nm + '  ' + pctf(frac * 100, frac < 0.1 ? 1 : 0);
-          svg.append(el('text', { x: tx, y: ty + 4, 'font-size': 13.5,
-            fill: cssv('--ink'), 'font-weight': 600,
-            'text-anchor': right ? 'start' : 'end' }, [lab]));
+          const tr = (R + R0) / 2;
+          svg.append(el('text', { x: cx + tr * Math.cos(mid),
+            y: cy + tr * Math.sin(mid) + 4, 'font-size': 13,
+            fill: '#151515', stroke: '#ffffff', 'stroke-width': 3,
+            'paint-order': 'stroke', 'stroke-linejoin': 'round',
+            'pointer-events': 'none', 'font-weight': 700,
+            'text-anchor': 'middle' }, [pctf(frac * 100)]));
         }
         a0 = a1;
       });
 
-      /* centre: total over the node name */
+      /* Keep the hole free of long labels. Full names are in the figure
+         heading and wrapping legend; only a fitted amount and unit go here. */
+      const totalLabel = fmt(total);
+      const fontSize = Math.min(40, (R0 * 1.65) / Math.max(1, totalLabel.length * .65));
       svg.append(el('text', { x: cx, y: cy - 8, 'text-anchor': 'middle',
-        'font-size': 40, 'font-weight': 750, fill: cssv('--ink'),
-        'font-variant-numeric': 'tabular-nums' }, [fmt(total)]));
-      if (centreTitle) svg.append(el('text', { x: cx, y: cy + 18,
-        'text-anchor': 'middle', 'font-size': 14, 'font-weight': 600,
-        fill: cssv('--ink-2') },
-        [centreTitle.length > 30 ? centreTitle.slice(0, 29) + '…' : centreTitle]));
-      if (centreSub) svg.append(el('text', { x: cx, y: cy + 36,
-        'text-anchor': 'middle', 'font-size': 12.5, fill: cssv('--muted') },
-        [centreSub]));
+        'font-size': fontSize, 'font-weight': 750, fill: cssv('--ink'),
+        'font-variant-numeric': 'tabular-nums' }, [totalLabel]));
+      svg.append(el('text', { x: cx, y: cy + 18, 'text-anchor': 'middle',
+        'font-size': Math.min(12, R0 / 7), fill: cssv('--muted') },
+        ['₹ crore']));
       plot.append(svg);
 
       legendItems(legend, pos.map(it => ({
-        name: it.name, color: it.color, code: it.code, kind: 'sq',
+        name: it.name + ' · ' + pctf(it.value / total * 100),
+        color: it.color, code: it.code, kind: 'sq',
         onClick: (onSlice && it.drill !== false) ? () => onSlice(it) : null,
       })), 'sq');
       if (skipped.length) legend.append(el('span', { class: 'lg-note' },
@@ -555,8 +574,7 @@
     if (ref != null) svg.append(el('line', { x1: pad, x2: w - pad,
       y1: ys(ref), y2: ys(ref), stroke: cssv('--hair'), 'stroke-width': 1 }));
 
-    let dot = null;
-    seriesList.forEach((s, si) => {
+    seriesList.forEach(s => {
       const color = s.color || 'var(--s1)';
       let d = '', pen = false, li = -1;
       s.values.forEach((v, i) => {
@@ -567,14 +585,13 @@
       if (d) svg.append(el('path', { d, fill: 'none', stroke: color,
         'stroke-width': 1.5, 'stroke-dasharray': s.dash || null,
         'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-      if (si === 0 && li >= 0) dot = { x: xs(li), y: ys(s.values[li]), color };
+      s.values.forEach((v, i) => { if (v != null)
+        svg.append(measureMarker(s.dash, xs(i), ys(v), color, cssv('--surface'), 1.7)); });
     });
-    if (dot) svg.append(el('circle', { cx: dot.x, cy: dot.y, r: 2.5,
-      fill: dot.color }));
     return svg;
   }
 
-  window.Engine = { el, cssv, seriesColor, SERIES, DASH, nfIN, money, pctf,
+  window.Engine = { el, cssv, seriesColor, SERIES, DASH, MEAS, MEASURE_HELP, measureKey, measureMarker, nfIN, money, pctf,
     lerpHex, lum, figure, drawFig, dropFigs, redrawAll, table, niceTicks,
     lineChart, barChart, donutChart, legendItems, spark };
 })();

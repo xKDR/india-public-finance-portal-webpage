@@ -38,9 +38,9 @@
 
   function rankCol(cs) {
     if (S.mode === 'doc') {
-      if (Model.colExists(IX, cs[3])) return 3;
+      if (Model.colExists(IX, cs[2])) return 2;
       for (let i = 0; i < cs.length; i++) if (Model.colExists(IX, cs[i])) return i;
-      return 3;
+      return 2;
     }
     return 0;
   }
@@ -209,7 +209,6 @@
      band mode reorders but the note is still sensible per-measure). */
   const COL_NOTE = {
     ac: ['', 'printed two volumes later'],
-    bp: [' as restated', 'from the next volume'],
     re: ['', 'from the next volume'],
     be: ['', 'the headline estimate of this volume'],
   };
@@ -231,12 +230,12 @@
     const p = document.createElement('div');
     p.className = 'popover colinfo';
     const h = document.createElement('h4');
-    h.textContent = 'What the four columns mean';
+    h.textContent = 'What the three columns mean';
     p.append(h);
     const p1 = document.createElement('p');
-    p1.textContent = 'Single-year view shows the four columns as printed '
+    p1.textContent = 'Single-year view shows three measures printed '
       + 'in that document year: accounts from two years before, the '
-      + 'previous year\'s budget estimate as restated, its revised '
+      + 'previous year\'s revised '
       + 'estimate, and the headline budget estimate.';
     const p2 = document.createElement('p');
     p2.textContent = 'A band sums each measure over the chosen fiscal '
@@ -259,7 +258,7 @@
     b.type = 'button';
     b.className = 'info-btn';
     b.textContent = 'i';
-    b.setAttribute('aria-label', 'What the four columns mean');
+    b.setAttribute('aria-label', 'What the three columns mean');
     b.setAttribute('aria-expanded', 'false');
     b.addEventListener('click', e => {
       e.stopPropagation();
@@ -750,7 +749,7 @@
       sub: 'over BE ' + IX.fys[st.growth.f - 1],
       spark: { series: [{ values: IX.fys.map((_, f) => {
         if (!f) return null;
-        const bef = get('be', f), prev = get('be', f - 1) || get('bp', f - 1);
+        const bef = get('be', f), prev = get('be', f - 1);
         return bef && prev ? (bef / prev - 1) * 100 : null;
       }) }], ref: 0 } });
     if (st.exec) items.push({ lab: 'Spent vs budgeted · ' + IX.fys[st.exec.f],
@@ -761,7 +760,7 @@
     if (st.rev) items.push({ lab: 'Revised vs budgeted · ' + IX.fys[st.rev.f],
       val: Stats.fmtPct(st.rev.pct, true), sub: 'RE against BE',
       spark: { series: [{ values: IX.fys.map((_, f) => {
-        const re = get('re', f), be = get('be', f) || get('bp', f);
+        const re = get('re', f), be = get('be', f);
         return re && be ? (re / be - 1) * 100 : null;
       }) }], ref: 0 } });
     if (st.cagr) items.push({ lab: st.cagr.span + '-yr growth of actuals',
@@ -931,6 +930,7 @@
   /* ------------------------------------------------------------- side */
   function drawSide() {
     const box = $('#xside-body');
+    if (!box) return;
     Engine.dropFigs(box);
     box.innerHTML = '';
     const cs = cols();
@@ -1064,7 +1064,7 @@
      (one head, one hue), dash carries the measure; the house rule. */
   function sideChart(box, getter, title) {
     const hue = Engine.cssv('--s1');
-    const series = [['be', 'Budget'], ['re', 'Revised'], ['ac', 'Actuals']]
+    const series = Engine.MEAS
       .map(([m, label]) => ({
         name: label, dash: Engine.DASH[m], color: hue,
         values: IX.fys.map((_, f) =>
@@ -1139,8 +1139,7 @@
   function wireSearch() {
     const idx = Search.makeIndex(ST);
     Search.attach($('#xsearch'), idx, {
-      global: () => S.scope === 'global',
-      branch: branchResults,
+      global: () => true,
       onPick: e => {
         const mj = e.lv === 'mj' ? e.code : (e.majors && e.majors[0]);
         if (!mj) return;
@@ -1342,7 +1341,7 @@
     });
 
     const modeSeg = $('#xmode');
-    [['doc', 'Single year'], ['band', 'Band of years']].forEach(([v, l]) => {
+    [['doc', 'Single year'], ['band', 'Cumulative']].forEach(([v, l]) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.textContent = l;
@@ -1375,22 +1374,6 @@
     to.addEventListener('change', () => {
       S.to = Math.max(+to.value, S.from); to.value = S.to; draw(); });
 
-    const scopeSeg = $('#xscope');
-    [['global', 'Global'], ['branch', 'This branch']].forEach(([v, l]) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = l;
-      b.dataset.v = v;
-      b.setAttribute('aria-pressed', String(S.scope === v));
-      b.addEventListener('click', () => {
-        S.scope = v;
-        for (const c of scopeSeg.children)
-          c.setAttribute('aria-pressed', String(c.dataset.v === v));
-        $('#xsearch input').focus();
-      });
-      scopeSeg.append(b);
-    });
-
     $('#xcollapse').addEventListener('click', () => {
       S.open = new Set(); S.shown = new Set();
       S.selKey = null; S.sel = null;
@@ -1420,6 +1403,7 @@
      effect above 1020px; explorer.css scopes its rule to that query. */
   function wireSidePanel() {
     const h3 = $('#xside-title');
+    if (!h3) return;
     const txt = document.createElement('span');
     txt.id = 'xside-title-txt';
     txt.textContent = h3.textContent;
