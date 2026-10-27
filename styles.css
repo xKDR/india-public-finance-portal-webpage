@@ -28,7 +28,8 @@ a:hover {
    Put the shared header, the in-page links and the footer on the same
    column as the portal pages (--gutter, tokens.css). */
 .site-head {
-  margin: 0 var(--gutter);
+  margin: 0;
+  padding: 0 var(--gutter);
 }
 
 body > .foot {

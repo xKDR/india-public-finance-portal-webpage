@@ -147,7 +147,7 @@
     const soon = document.createElement('div');
     soon.className = 'scard soon';
     soon.innerHTML = '<div class="top"><div><h2>More states</h2>'
-      + '<div class="yrs">The portal is built to take any state\'s '
+      + '<div class="yrs">The Lab is built to take any state\'s '
       + 'detailed expenditure volumes; greyed states on the map are '
       + 'waiting on data.</div></div></div>';
     host.append(soon);

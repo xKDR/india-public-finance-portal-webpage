@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="./public-finance/css/map.css?v=sync10">
     <link rel="stylesheet" href="./styles.css?v=sync10">
   </head>
-  <body><aside style="padding:8px 16px;background:#fff4cf;color:#493a14;font:13px system-ui">Local recovered preview · Budget data rebuilt from GitHub. Raw extraction values may differ from live processed data. Detailed quality badges and deeper comparison search are pending; see local README.</aside>
+  <body>
     <div class="site-head">
-      <a class="brand" href="./index.html">India Public Finance<span class="dot">·</span>Portal</a>
+      <a class="brand" href="./index.html">India Public Finance<span class="dot">·</span>Lab</a>
       <nav aria-label="Site">
         <a href="./public-finance/index.html">States</a>
         <a href="explore.html">Explore</a>
@@ -50,7 +50,7 @@
             <a class="button secondary" href="#examples">See worked examples</a>
           </div>
           <div class="release-actions" aria-label="Release resources">
-            <a href="./public-finance/index.html">Open the state portal</a>
+            <a href="./public-finance/index.html">Open the state data</a>
             <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/karnataka-state-finance" target="_blank" rel="noopener">Browse the data package</a>
             <a href="https://github.com/xKDR/india-public-finance-portal/archive/refs/heads/main.zip" target="_blank" rel="noopener">Download the repository archive</a>
           </div>
@@ -178,15 +178,15 @@
             <article id="drugUseCase" class="use-case-body" hidden aria-label="Drug procurement research use case">
               <div class="use-case-intro">
                 <h4>Structured data made this exercise possible</h4>
-                <p>PDFs can show a budget figure, but a comparison needs a consistent set of records. Without structured data, this exercise would not have been feasible at this level of detail: researchers would have had to locate, transcribe and reconcile individual entries across years and two different account structures. The portal made those entries searchable, sortable and reusable, with source references for checking them.</p>
+                <p>PDFs can show a budget figure, but a comparison needs a consistent set of records. Without structured data, this exercise would not have been feasible at this level of detail: researchers would have had to locate, transcribe and reconcile individual entries across years and two different account structures. The Lab made those entries searchable, sortable and reusable, with source references for checking them.</p>
               </div>
               <h4>The resulting work</h4>
-              <p><a href="https://blog.theleapjournal.org/2026/10/spending-as-planned-efficiency-of-drug.html#gsc.tab=0" target="_blank" rel="noopener">Spending as Planned: Efficiency of Drug Procurement in Tamil Nadu</a>, by Pavithra Manivannan, Aakriti Narang and Susan Thomas, uses the portal to compare drug spending with budget plans in Karnataka and Tamil Nadu.</p>
+              <p><a href="https://blog.theleapjournal.org/2026/10/spending-as-planned-efficiency-of-drug.html#gsc.tab=0" target="_blank" rel="noopener">Spending as Planned: Efficiency of Drug Procurement in Tamil Nadu</a>, by Pavithra Manivannan, Aakriti Narang and Susan Thomas, uses the Lab to compare drug spending with budget plans in Karnataka and Tamil Nadu.</p>
               <h4>From records to a research result</h4>
               <ol class="use-case-steps">
                 <li><h5>Define the question and the spending basket</h5><p>The study asks how closely drug expenditure follows its budget. Its basket includes medicines, medical supplies and equipment within health and family welfare budgets.</p><p>For a similar exercise here, write down which items belong in your basket before adding amounts. A label such as “Drugs and Chemicals” is a starting point, not a complete classification. The same label under Police serves a different purpose from one under Medical and Public Health.</p></li>
                 <li><h5>Identify the relevant lines in each state</h5><p>Search one state at a time, check the major head attached to each result, and inspect the expandable account table for context. Keep a list of the selected codes, names and reasons for including them. Match spending purposes across states rather than assuming their detailed codes are interchangeable.</p></li>
-                <li><h5>Build a comparable year-by-year table</h5><p>The comparison covers FY 2018–19 to 2024–25. Actuals arrive with a two-year publication lag.</p><p>Select the required fiscal years and download BE, RE and Actuals. Each row must compare the same fiscal year. Keep unavailable figures blank, retain genuine zeros, and use one currency unit. This portal converts both states to crore. To form a basket, add mutually exclusive detail lines; adding a parent total to its children counts expenditure twice.</p></li>
+                <li><h5>Build a comparable year-by-year table</h5><p>The comparison covers FY 2018–19 to 2024–25. Actuals arrive with a two-year publication lag.</p><p>Select the required fiscal years and download BE, RE and Actuals. Each row must compare the same fiscal year. Keep unavailable figures blank, retain genuine zeros, and use one currency unit. This Lab converts both states to crore. To form a basket, add mutually exclusive detail lines; adding a parent total to its children counts expenditure twice.</p></li>
                 <li><h5>Measure the difference between plans and spending</h5><p>For each state and year, calculate:</p><div class="use-case-formula">Spending gap (%) = 100 × (Actuals − BE) ÷ BE</div><p>Zero means spending matched the plan. A positive number means spending exceeded BE; a negative number means it fell short. If BE is zero, the percentage is undefined. Average the annual gaps to describe their direction; calculate their standard deviation to describe how much they vary.</p></li>
                 <li><h5>Check whether the pattern survives a different test</h5><p>The authors repeat the analysis without 2020–21, and compare Actuals with RE.</p><p>These checks answer different questions: does an exceptional year drive the overall result, and does updating the estimate bring the plan closer to expenditure? In your own analysis, keep the year selection and formula explicit so another researcher can reproduce each version.</p></li>
               </ol>
@@ -276,7 +276,7 @@
           <div class="citation-box">
             <div>
               <strong>Citation</strong>
-              <p id="projectCitation">xKDR. India Public Finance Portal. Karnataka state budget data, 2018-19 to 2026-27. https://github.com/xKDR/india-public-finance-portal</p>
+              <p id="projectCitation">xKDR. India Public Finance Lab. Karnataka state budget data, 2018-19 to 2026-27. https://github.com/xKDR/india-public-finance-portal</p>
             </div>
             <button class="tool-button" id="copyCitation" type="button">Copy citation</button>
             <span id="citationStatus" role="status"></span>
@@ -304,7 +304,7 @@
     </main>
 
     <div class="foot">
-      <p>India Public Finance Portal is a project of xKDR. Data, code and this site are public on
+      <p>India Public Finance Lab is a project of xKDR. Data, code and this site are public on
         <a href="https://github.com/xKDR/india-public-finance-portal">GitHub</a>.</p>
     </div>
 

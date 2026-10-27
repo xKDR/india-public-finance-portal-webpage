@@ -92,16 +92,16 @@
       `| Document year | ${y || '–'} |`,
       `| Account code / head | ${code || '–'} |`,
       `| Column | ${col || '–'} |`,
-      `| Value shown on the portal | ${shown || '–'} |`,
+      `| Value shown on the Lab | ${shown || '–'} |`,
       `| Value expected (from the PDF) | ${expected || '–'} |`,
     ];
     const openHash = code
       ? '#open=' + code.split(/\s+/).join('.') : '';
-    lines.push(`| Portal link | ${location.origin
+    lines.push(`| Lab link | ${location.origin
       + location.pathname.replace(/report\.html$/, '')
       + st + '/explore.html' + openHash} |`);
     lines.push('', '### Comment', '', comment || '–', '',
-      '_Filed from the portal report form._');
+      '_Filed from the Lab report form._');
     const url = REPO_ISSUES + '?labels=data-error&title='
       + encodeURIComponent(title) + '&body='
       + encodeURIComponent(lines.join('\n'));
