@@ -3,16 +3,18 @@
 This repository is the static website for the India Public Finance Lab. The live site is
 https://india-public-finance.pages.dev.
 
-The site includes Karnataka FY 2018-19 to 2026-27 and Tamil Nadu FY 2014-15 to 2026-27. It is a
-research preview. Read `public-finance/about.html` before you use a figure in published analysis.
+The site includes Karnataka FY 2018-19 to 2026-27, Tamil Nadu FY 2014-15 to 2026-27 and Bihar FY
+2017-18 to 2026-27. It is a research preview. Read `public-finance/about.html` before you use a figure in published analysis.
 
 ## Layout
 
 - `index.html` is the landing page.
 - `public-finance/` holds the state pages: explorer, dashboard and time series for each state
-  (`ka/`, `tn/`), plus Compare, About and Report.
+  (`ka/`, `tn/`, `br/`), plus Compare, About and Report.
 - `public-finance/data/` holds the data files that the pages load.
 - `resources/` holds the Guide and Results pages.
+- `tools/` holds the scripts that build `public-finance/data/` from the data repository. See
+  `tools/README.md`.
 
 Keep the directory structure unchanged. The pages load data and scripts from relative paths.
 

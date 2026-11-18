@@ -99,6 +99,13 @@
       const tt = document.createElement('div');
       const h2 = document.createElement('h2');
       h2.textContent = s.name;
+      if (s.native) {
+        const nat = document.createElement('span');
+        nat.className = 'native';
+        nat.lang = s.lang || '';
+        nat.textContent = ' · ' + s.native;
+        h2.append(nat);
+      }
       const yrs = document.createElement('div');
       yrs.className = 'yrs';
       yrs.textContent = s.n_years + ' budget years · ' + s.first + ' → '

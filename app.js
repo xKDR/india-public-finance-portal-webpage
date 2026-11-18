@@ -6,7 +6,13 @@
    the data. window.PORTAL points at ./public-finance/, so Store resolves to
    ./public-finance/data/. */
 
-let STATE = new URLSearchParams(location.search).get('exploreState') === 'tn' ? 'tn' : 'ka';
+// The Explore state tabs in the page are the list of states; Karnataka is the default.
+const EXPLORE_STATES = [...document.querySelectorAll('[data-explore-state]')].map(a => a.dataset.exploreState);
+const STATE_PARAM = new URLSearchParams(location.search).get('exploreState');
+let STATE = EXPLORE_STATES.includes(STATE_PARAM) ? STATE_PARAM : 'ka';
+const UNIT_TEXT = {INR_lakh: 'INR lakh', INR_thousand: 'INR thousand', INR: 'rupees'};
+const LEGACY_COMMIT = '371c1e5d79a7f2dfcb8d55f21867330384093910';
+let PROVENANCE = null;          // data/provenance.json: source commit per state
 const TABLE_FILES = [
   ["budget_<year>.csv", "Document-shaped budget rows with account codes, financial amounts, and source page references."],
   ["checks_<year>.csv", "One arithmetic comparison per account key and financial column."],
@@ -56,8 +62,9 @@ const selectedHeads = new Map();
 let selectedYear = null;
 let selectedAllYears = false;
 let selectedYears = new Set();
-const levelLabels = {mj:'Major head',sm:'Sub-major head',mn:'Minor head',sh:'Sub-head',dh:'Detailed head',lf:STATE==='tn'?'Sub-detailed head':'Object head'};
-const normalizeHead = s => String(s || '').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+const levelLabels = {mj:'Major head',sm:'Sub-major head',mn:'Minor head',sh:'Sub-head',dh:'Detailed head',lf:'Object head'};
+// Letters, marks and digits of any script, so Devanagari and Kannada names stay distinct.
+const normalizeHead = s => String(s || '').toLowerCase().replace(/&/g,' and ').replace(/[^\p{L}\p{M}\p{N}]+/gu,' ').trim();
 
 function aggregateSelectedHead(model, entry, specs) {
   const ids = new Set(model.nodes.filter(n => n.lv === entry.lv && n.code === entry.code
@@ -150,7 +157,7 @@ function setupSelectedHeads() {
     const rows=[['state','fiscal_year','major_head_code','major_head_name','head_code','head_name','level','BE_INR_crore','RE_INR_crore','Actuals_INR_crore','repository_commit']];
     for(const r of selectedTableRows()){
       const specs=selectedSpecs(r.year);
-      rows.push([STATE,r.year,r.major,IX.majors.find(m=>m.c===r.major)?.n,r.code,r.name,levelLabels[r.lv],...r.values.map((v,j)=>Model.colExists(IX,specs[j])&&r.available[j]?v/IX.crore_div:''),'371c1e5d79a7f2dfcb8d55f21867330384093910']);
+      rows.push([STATE,r.year,r.major,IX.majors.find(m=>m.c===r.major)?.n,r.code,r.name,levelLabels[r.lv],...r.values.map((v,j)=>Model.colExists(IX,specs[j])&&r.available[j]?v/IX.crore_div:''),PROVENANCE?.states?.[STATE]?.commit||LEGACY_COMMIT]);
     }
     const csv=rows.map(row=>row.map(csvCell).join(',')).join('\r\n')+'\r\n';
     const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -431,6 +438,7 @@ function setupUseCase() {
 }
 
 function setupExplorer() {
+  levelLabels.lf=IX.levels.find(l=>l.k==='lf')?.label||'Leaf head';
   $('.explore-state-tabs').addEventListener('click',async e=>{
     const tab=e.target.closest('[data-explore-state]');if(!tab)return;
     e.preventDefault();
@@ -440,7 +448,7 @@ function setupExplorer() {
     $('.pf-explore').setAttribute('aria-busy','true');
     try{
       const index=await Store.index(next);if(token!==stateSwitchToken)return;
-      STATE=next;IX=index;levelLabels.lf=next==='tn'?'Sub-detailed head':'Object head';
+      STATE=next;IX=index;
       models.clear();open.clear();selectedHeads.clear();selectedYears.clear();
       selectedAllYears=false;filterQuery='';renderToken++;
       $('.pf-explore').innerHTML=exploreTemplate;
@@ -462,7 +470,7 @@ function setupExplorer() {
     if(tab.dataset.exploreState===STATE)tab.setAttribute('aria-current','page');
     else tab.removeAttribute('aria-current');
   });
-  $('#accountUnitHint').textContent=`Source amounts for ${IX.name} are in ${STATE==='tn'?'INR thousand':'INR lakh'}; displayed amounts are converted to ₹ crore. Open a row to see the account levels beneath it. A dash means unavailable data.`;
+  $('#accountUnitHint').textContent=`Source amounts for ${IX.name} are in ${UNIT_TEXT[IX.unit]||IX.unit}; displayed amounts are converted to ₹ crore. Open a row to see the account levels beneath it. A dash means unavailable data.`;
   setupSelectedHeads();
   DY = IX.doc_years[IX.doc_years.length - 1];
 
@@ -556,9 +564,9 @@ setupHealthExample();
 setupUseCase();
 // The landing-page examples and coverage describe Karnataka. State tabs
 // select only the Explore workspace and its repository-backed data.
-Promise.all([Store.index('ka'),Store.states().catch(()=>null),Store.quality('ka').catch(()=>null)])
-  .then(async ([index,stateList,quality]) => {
-    IX = index;QUALITY=quality;
+Promise.all([Store.index('ka'),Store.states().catch(()=>null),Store.quality('ka').catch(()=>null),Store.get(PORTAL.root+'data/provenance.json').catch(()=>null)])
+  .then(async ([index,stateList,quality,provenance]) => {
+    IX = index;QUALITY=quality;PROVENANCE=provenance;
     STATE_META=stateList?.states?.find(s=>s.st==='ka')||null;
     if($('#metrics')){
     renderMetrics();

@@ -88,9 +88,12 @@
   --notice:#6b6560; --notice-bg:#f3eee8;
 
   /* --------------------------------------------------------- typography */
-  --serif:Georgia, "Times New Roman", serif; /* headings */
-  --sans:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; /* UI/body */
-  --mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace; /* numbers */
+  /* --deva: Devanagari fallbacks for Hindi (Bihar) and Marathi names; used only
+     for glyphs the Latin fonts before it lack. */
+  --deva:"Noto Sans Devanagari", "Kohinoor Devanagari", "Devanagari Sangam MN", "Nirmala UI", Mangal;
+  --serif:Georgia, "Times New Roman", "Noto Serif Devanagari", var(--deva), serif; /* headings */
+  --sans:-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, var(--deva), sans-serif; /* UI/body */
+  --mono:ui-monospace, "SF Mono", Menlo, Consolas, var(--deva), monospace; /* numbers */
 
   /* ------------------------------------------------------------- spacing */
   /* page column: portal .page is 1480px wide with 30px padding, so its
