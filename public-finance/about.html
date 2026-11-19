@@ -44,8 +44,8 @@
 
     <h2>What gets summed</h2>
     <p>Only the additive leaf rows are ever added up: Tamil Nadu's
-      sub-detailed heads and the object heads of Karnataka and
-      Bihar (the same level under two names). The volumes' own printed subtotals are deliberately not
+      sub-detailed heads and the object heads of Karnataka, Bihar and
+      Maharashtra (the same level under two names). The volumes' own printed subtotals are deliberately not
       used as data; they serve as an independent check on the leaf sums.
       Where a printed total and the sum of the rows beneath it disagree, the
       head is flagged with a chip rather than silently corrected.</p>
@@ -64,7 +64,7 @@
       a figure not printed yet, never a zero.</p>
 
     <h2>Units</h2>
-    <p>Tamil Nadu prints INR thousand, Karnataka INR lakh,
+    <p>Tamil Nadu and Maharashtra print INR thousand, Karnataka INR lakh,
       Bihar rupees. Everything on
       this site is converted to ₹ crore, nominal; no deflation, no per
       capita scaling.</p>
@@ -88,13 +88,16 @@
         speeches, which nets differently.</li>
       <li>Negative lines (deduct-recoveries) are summed as printed, so
         branch totals are net of recoveries.</li>
-      <li>Bihar leaf sums do not equal their printed totals
+      <li>Bihar and Maharashtra leaf sums do not equal their printed totals
         everywhere. Bihar's BE leaf sum is below its printed demand totals
         by about ₹1,210 crore (2017-18) to ₹29,139 crore (2026-27); some
-        blocks were not extracted. Read
-        <code>BR_README.md</code> before using
-        its state totals.</li>
-      <li>Bihar head names are printed in Hindi and shown as printed.</li>
+        blocks were not extracted. Maharashtra's leaves fall short of the printed major-head
+        Gross Totals by about 5 to 25 per cent a year. Read
+        <code>BR_README.md</code> and <code>MH_README.md</code> before using
+        their state totals.</li>
+      <li>Bihar head names are printed in Hindi and shown as printed.
+        Maharashtra head names are the English names printed in its
+        bilingual books.</li>
       <li>Head names are normalised across years for matching; codes, not
         names, are the stable identity of a head.</li>
       <li>The build reads locally generated <code>*_cleaned.csv</code>

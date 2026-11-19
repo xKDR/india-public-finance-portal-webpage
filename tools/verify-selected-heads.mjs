@@ -84,9 +84,9 @@ const tnCsv=await exported.text();
 assert.ok(tnCsv.includes('tn,2024-25,2210'));
 assert.ok(tnCsv.includes('15279.5694,15631.4998,15493.2238'));
 console.log('PASS: Tamil Nadu CSV state identity, selected year, and native-unit conversion.');
-// Bihar (rupees, Hindi names): the same aggregation
+// Bihar (rupees, Hindi names) and Maharashtra (INR thousand): the same aggregation
 // for major head 2210, checked against the repository leaves, and the CSV unit conversion.
-for(const [st,pre,slug,div] of [['br','BR','bihar',1e7]]){
+for(const [st,pre,slug,div] of [['br','BR','bihar',1e7],['mh','MH','maharashtra',1e4]]){
  const sIx=JSON.parse(await fs.readFile(D(`${st}/index.json`)));
  const shard=JSON.parse(await fs.readFile(D(`${st}/major/2210.json`)));
  const model={...shard,chains:shard.paths.map(p=>p.n.filter(n=>n>=0))};

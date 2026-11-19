@@ -88,6 +88,7 @@ for (const S of STATES) {
  const latest = fys.length - 1, ac = latest - 2;
  const rec = {st, code: prefix, name: ix.name, n_years: years.length, first: years[0], last: years.at(-1), majors: ix.majors.length, leaf_rows: ix.n_leaf_rows, be: {fy: fys[latest], cr: ix.totals.be[latest] / ix.crore_div}, exec: {fy: fys[ac], pct: 100 * ix.totals.ac[ac] / ix.totals.be[ac]}};
  if (S.native) Object.assign(rec, {native: S.native, lang: S.lang});
+ if (S.pending) rec.pending = S.pending;
  states.push(rec);
  provStates[st] = {commit: git('log', '-1', '--format=%H', '--', pkg), package_dir: pkg, unit: S.unit, crore_div: S.crore_div, leaf: S.leaf, leaf_rule: S.leaf_rule};
 }
