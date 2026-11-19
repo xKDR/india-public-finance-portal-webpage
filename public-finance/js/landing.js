@@ -99,11 +99,29 @@
       const tt = document.createElement('div');
       const h2 = document.createElement('h2');
       h2.textContent = s.name;
+      if (s.native) {
+        const nat = document.createElement('span');
+        nat.className = 'native';
+        nat.lang = s.lang || '';
+        nat.textContent = ' · ' + s.native;
+        h2.append(nat);
+      }
       const yrs = document.createElement('div');
       yrs.className = 'yrs';
       yrs.textContent = s.n_years + ' budget years · ' + s.first + ' → '
         + s.last + ' · ' + s.majors + ' major heads';
       tt.append(h2, yrs);
+      if (s.pending) {
+        const pend = document.createElement('div');
+        pend.className = 'pending';
+        pend.style.cssText = 'margin-top:6px;padding:3px 8px;font-size:12.5px;'
+          + 'background:var(--warn-bg);color:var(--warn);'
+          + 'border-left:3px solid var(--warn)';
+        pend.textContent = Engine.nfIN(s.pending.pages)
+          + ' source pages still need extraction';
+        pend.title = s.pending.text;
+        tt.append(pend);
+      }
       top.append(tt);
       card.append(top);
 
