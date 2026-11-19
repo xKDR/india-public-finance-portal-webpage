@@ -21,8 +21,12 @@ for (const S of STATES) {
       `<p class="kicker">${esc(S.name)}${native} · state finances</p>`);
     h = h.replaceAll('../ka/', `../${S.st}/`).replaceAll('state=ka', `state=${S.st}`)
       .replaceAll("state:'ka'", `state:'${S.st}'`).replaceAll('Karnataka', esc(S.name));
-    if (S.pending) h = h.replace('</h1>', `</h1>
-  <p class="pending" style="margin:6px 0 14px;padding:8px 12px;font-size:13.5px;background:var(--warn-bg);color:var(--warn);border-left:3px solid var(--warn)"><b>${S.pending.pages.toLocaleString('en-IN')} source pages still need extraction.</b> ${esc(S.pending.text)}</p>`);
+    if (S.pending) {
+      const details = page === 'explore'
+        ? ` <a href="../extraction-coverage.html#${S.st}">See affected demands, major heads and pages</a>.` : '';
+      h = h.replace('</h1>', `</h1>
+  <p class="pending" style="margin:6px 0 14px;padding:8px 12px;font-size:13.5px;background:var(--warn-bg);color:var(--warn);border-left:3px solid var(--warn)"><b>${S.pending.pages.toLocaleString('en-IN')} source pages still need extraction.</b> ${esc(S.pending.text)}${details}</p>`);
+    }
     if (/Karnataka|\bka\//.test(h)) throw Error(`${S.st}/${page}: Karnataka text left`);
     await fs.writeFile(path.join(pf, S.st, page + '.html'), h);
   }

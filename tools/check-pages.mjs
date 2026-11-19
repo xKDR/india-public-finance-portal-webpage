@@ -34,6 +34,10 @@ await page(`${base}/index.html`);
 await page(`${pf}/index.html`);
 await page(`${pf}/compare.html`);
 await page(`${pf}/about.html`);
+const guide = `${base}/resources/guide.html`;
+const coverage = `${pf}/extraction-coverage.html`;
+await page(guide);
+await page(coverage);
 const states = await json(`${pf}/data/states.json`);
 await json(`${pf}/data/provenance.json`);
 await json(`${pf}/assets/india_states.json`);
@@ -46,6 +50,14 @@ for (const S of STATES) {
   for (const part of ['core', 'subheads', 'detailed', 'leaves']) await json(`${pf}/data/${S.st}/search/${part}.json`);
   const rec = states?.states.find(s => s.st === S.st);
   if (!rec) errors.push(`${S.st} missing from states.json`);
+  if (rec?.pending) {
+    const explorer = await get(`${pf}/${S.st}/explore.html`);
+    const coveragePage = await get(coverage);
+    if (!explorer.body.includes(`href="../extraction-coverage.html#${S.st}"`)
+        || !coveragePage.body.includes(`id="${S.st}"`)) {
+      errors.push(`${S.st} missing its extraction coverage link or section`);
+    }
+  }
   if (!cix?.states.some(s => s.k === S.st)) errors.push(`${S.st} missing from compare/index.json`);
   if (ix) {
     const top = ix.majors.slice().sort((a, b) => (b.d.be?.[ix.fys.length - 1] || 0) - (a.d.be?.[ix.fys.length - 1] || 0))[0];
