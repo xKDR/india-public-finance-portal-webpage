@@ -1,18 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Karnataka Budget Data Guide</title>
+  <title>State Budget Data Guide | India Public Finance Lab</title>
 
   <link rel="stylesheet" href="../public-finance/css/tokens.css?v=sync10" />
   <link rel="stylesheet" href="../public-finance/css/base.css?v=sync10" />
   <link rel="stylesheet" href="../public-finance/css/controls.css?v=sync10" />
   <style>
-    /* Page-specific layout only. Colour, type and chrome come from
-       tokens.css + base.css; this block only lays out guide-only
-       components (stat tiles, the accounting ladder, the dictionary
-       accordion) and expresses them with shared custom properties. */
+    /* Guide layout uses the shared site tokens. */
     code { background: var(--ground-2); padding: 2px 5px; border-radius: 4px; color: var(--ink); }
     pre {
       overflow-x: auto; margin: 14px 0 0; padding: 14px;
@@ -23,15 +20,6 @@
     section > p:first-of-type { margin-top: 4px; }
     p { max-width: 760px; color: var(--ink-2); }
     h2 { border-left: 4px solid var(--coral); padding-left: 12px; }
-
-    /* Header stat tiles */
-    .stats {
-      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px;
-      margin-top: 22px; border: 1px solid var(--hair); background: var(--hair);
-    }
-    .stat-tile { min-height: 88px; padding: 14px; background: var(--surface); }
-    .stat-tile b { display: block; font-size: 22px; }
-    .stat-tile span { color: var(--muted); font-size: 12px; }
 
     /* In-page contents */
     nav.toc {
@@ -48,14 +36,15 @@
     .step strong { display: block; margin-bottom: 8px; color: var(--ink); }
     .step small { color: var(--muted); }
 
-    /* Two-column layout (snapshot section) */
+    /* Source pages and worked examples */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .spread { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 
     /* Tables (scoped so they don't inherit the portal's numeric-table
        right-align/mono defaults meant for data tables) */
     .tablewrap { overflow-x: auto; margin-top: 14px; }
     .tablewrap table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 14px; }
-    .tablewrap th, .tablewrap td { padding: 9px 10px; border: 1px solid var(--hair); text-align: left; vertical-align: top; font-family: var(--sans); }
+    .tablewrap th, .tablewrap td { padding: 9px 10px; border: 1px solid var(--hair); text-align: left; vertical-align: top; font-family: var(--sans); white-space: normal; }
     .tablewrap th { background: var(--paper-warm); font-size: 12.5px; }
     tr.leaf td { background: var(--accent-soft); }
     tr.nonadd td { color: var(--muted); font-style: italic; }
@@ -81,7 +70,7 @@
     .toplink { font-size: 12px; color: var(--accent-ink); text-decoration: none; float: right; }
 
     @media (max-width: 880px) {
-      .stats, .ladder, .grid { grid-template-columns: 1fr; }
+      .ladder, .grid { grid-template-columns: 1fr; }
       nav.toc ol { columns: 1; }
     }
     @media print {
@@ -111,24 +100,17 @@
     </nav>
   </div>
 
-  <p class="kicker">India public finance &middot; Karnataka</p>
-  <h1>Karnataka budget data guide</h1>
-  <p class="sub">What the source documents are, what one page looks like, what the columns mean, and how to total the data without counting it twice.</p>
-  <!-- Stats below are from karnataka-state-finance/package_stats.json @ v0.2.0-draft.
-       Update them here when a new data release changes the figures. -->
-  <div class="stats">
-    <div class="stat-tile"><b>v0.2.0-draft</b><span>Package version</span></div>
-    <div class="stat-tile"><b>11</b><span>Fiscal years</span></div>
-    <div class="stat-tile"><b>220,211</b><span>Budget rows</span></div>
-    <div class="stat-tile"><b>192,804</b><span>Validation rows</span></div>
-    <div class="stat-tile"><b>77</b><span>Source PDFs</span></div>
-  </div>
-  <p class="note">This guide describes the <code>v0.2.0-draft</code> package source range, FY 2016-17 to 2026-27. The public explorer currently surfaces Karnataka FY 2018-19 to 2026-27.</p>
+  <h1>State budget data guide</h1>
+  <p class="sub">Read budget pages from Karnataka, Tamil Nadu, Bihar and Maharashtra. Find the spending rows, choose the correct amount column and check for missing pages before you add up the figures.</p>
   <nav class="toc" aria-label="Contents">
     <b>On this page</b>
     <ol>
-      <li><a href="#intro">Introduction to the documents</a></li>
-      <li><a href="#snapshot">A snapshot of the budget document</a></li>
+      <li><a href="#intro">Source formats and units</a></li>
+      <li><a href="#changes-by-year">What changed by year</a></li>
+      <li><a href="#snapshot">Karnataka expenditure volumes</a></li>
+      <li><a href="#tamil-nadu">Tamil Nadu demand books</a></li>
+      <li><a href="#bihar">Bihar volumes and demand books</a></li>
+      <li><a href="#maharashtra">Maharashtra department white books</a></li>
       <li><a href="#columns">The columns you'll use first</a></li>
       <li><a href="#ladder">The accounting ladder</a></li>
       <li><a href="#totals">Don't double-count</a></li>
@@ -136,22 +118,48 @@
       <li><a href="#measures">The three measures</a></li>
       <li><a href="#validation">Validation drilldown</a></li>
       <li><a href="#files">Files to use</a></li>
-      <li><a href="#dictionary">Full column reference</a></li>
+      <li><a href="#dictionary">Karnataka column reference</a></li>
     </ol>
   </nav>
 
   <main>
 
     <section id="intro">
-      <h2>Introduction to the documents</h2>
-      <p>Every year the Government of Karnataka publishes its <strong>Detailed Estimates of Expenditure</strong> as a set of seven volumes (EXPVOL1&ndash;EXPVOL7) &mdash; the per-department backing detail behind the Demand for Grants. Each volume is a long PDF of accounting tables: for every department (a &ldquo;demand&rdquo;), money is broken down through a fixed hierarchy of account heads, with four money columns &mdash; prior-year Accounts, current Budget Estimate, current Revised Estimate, and next-year Budget Estimate.</p>
-      <p>These PDFs are built for printing, not analysis. This package extracts them to CSV and JSON while keeping the document&rsquo;s shape, so any number can be traced back to the page it came from.</p>
-      <p class="note">The CSV is <strong>document-shaped by design</strong>. It keeps headers, totals, and summary rows so you can line the table back up against the PDF &mdash; and that same shape is the one thing you must respect when you total a column (see <a href="#totals">Don&rsquo;t double-count</a>).</p>
+      <h2>Source formats and units</h2>
+      <p>A demand is a grant for a department or purpose. A major head is a broad spending function. The same major head can appear in more than one demand. The budget CSVs keep detail and subtotal rows together so you can match them to the source.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th scope="col">State</th><th scope="col">Source documents</th><th scope="col">Source unit</th><th scope="col">Divide by for crore</th><th scope="col">Spending detail row</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="#snapshot">Karnataka</a></th><td>Detailed Estimates of Expenditure, in numbered volumes</td><td>Rupees in lakh</td><td>100</td><td>Object head</td></tr>
+            <tr><th scope="row"><a href="#tamil-nadu">Tamil Nadu</a></th><td>Detailed Budget Estimates, usually one book per demand</td><td>Rupees in thousands</td><td>10,000</td><td>Sub-detailed head</td></tr>
+            <tr><th scope="row"><a href="#bihar">Bihar</a></th><td>Detailed Budget Estimates of Expenditure, combined volumes and per-demand books</td><td>Rupees</td><td>1,00,00,000</td><td>Object head</td></tr>
+            <tr><th scope="row"><a href="#maharashtra">Maharashtra</a></th><td>Demands for Grants, in department white books</td><td>Rupees in thousands</td><td>10,000</td><td>Object head in the details table</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Explore displays amounts in crore. Use the source unit above when you work with the raw files. See <a href="../public-finance/extraction-coverage.html">Extraction coverage</a> for known missing pages in Bihar and Maharashtra.</p>
+    </section>
+
+    <section id="changes-by-year">
+      <h2>What changed by year</h2>
+      <p>Each state's published budget CSVs use the same set of fields across the years in the package. Amount column names include the fiscal year. The source changes below can affect which rows or values you find in those fields.</p>
+      <div class="tablewrap" tabindex="0" role="region" aria-label="Changes in state budget formats by year">
+        <table>
+          <thead><tr><th scope="col">State</th><th scope="col">Source books</th><th scope="col">Published budget CSVs</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="#snapshot">Karnataka</a></th><td>The package uses numbered expenditure volumes throughout.</td><td>Through 2022-23 the files include separate minor-head and sub-major-head summary rows. These summary rows are absent from the published files from 2023-24. Use the <code>object_head</code> table for detail across years.</td></tr>
+            <tr><th scope="row"><a href="#tamil-nadu">Tamil Nadu</a></th><td>From 2017-18 funding labels such as State's Expenditure replace plan labels such as Non-Plan and State Plan. D P Codes have four-digit endings through 2018-19, a mix of four- and five-digit endings in 2019-20, and generally five-digit endings from 2020-21.</td><td><code>group_sub_head</code> carries the source funding label. <code>full_account_code</code> carries the D P Code. Use the year to interpret both when comparing detailed lines.</td></tr>
+            <tr><th scope="row"><a href="#bihar">Bihar</a></th><td>One combined volume per year through 2020-21. One PDF per demand from 2021-22.</td><td><code>pdf_page_number</code> points to the page position within that year's source PDF. Some demand books include summary annex rows with <code>type_of_table = 'object_head_summary'</code>. Exclude these rows when you sum expenditure.</td></tr>
+            <tr><th scope="row"><a href="#maharashtra">Maharashtra</a></th><td>Through 2017-18 the amounts span facing pages and can split into Non-Plan, Plan and Total. From 2018-19 one page carries the four main amounts.</td><td>The main amount fields carry the totals across both formats. The extra Plan and Non-Plan fields are blank from 2018-19. Use the main amount fields for comparisons across years.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section id="snapshot">
-      <h2>A snapshot of the budget document</h2>
-      <p>Here is one real page and the rows we extracted from it. Every printed line becomes a row; the extractor also records what <em>kind</em> of line it is.</p>
+      <h2>Karnataka expenditure volumes</h2>
+      <p>The numbered expenditure volumes place object-head detail and higher-level summary tables in the same books. Look for the demand and major head, then find the detailed head above the spending lines. An <strong>HOA Total</strong> is the printed total for that head of account. The public package covers 2018-19 to 2026-27.</p>
       <div class="grid">
         <figure>
           <a href="img/budget-page-2024-25-expvol1-p2.png">
@@ -178,24 +186,77 @@
               </tbody>
             </table>
           </div>
-          <p class="legend"><span class="chip"></span> Tinted rows are the <strong>additive leaves</strong> (<code>row_type = Data</code> and <code>row_level = Object-Head</code>) &mdash; the only rows you add up. The 17 leaf rows sum to <strong>31,335.31</strong>. The grey <code>Total</code> row repeats that same <strong>31,335.31</strong>: add up everything and you count it twice.</p>
+          <p class="legend"><span class="chip"></span> Tinted rows are the <strong>additive leaves</strong>. The 17 leaf rows sum to <strong>31,335.31</strong> lakh. The printed total repeats the same amount.</p>
+          <p><a href="../public-finance/ka/explore.html">Explore Karnataka</a> · <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/state-finances/karnataka">Karnataka data and dictionary</a></p>
         </div>
       </div>
     </section>
 
+    <section id="tamil-nadu">
+      <h2>Tamil Nadu demand books</h2>
+      <div class="grid">
+        <figure>
+          <a href="img/tn-demand-19.png"><img src="img/tn-demand-19.png" loading="lazy" width="849" height="1200" alt="Tamil Nadu budget detail with Tamil and English labels, four amount columns and a D P Code column." /></a>
+          <figcaption>Health and Family Welfare, demand 19, 2024-25. Printed page 24.</figcaption>
+        </figure>
+        <div>
+          <p>A demand can contain several Heads of Department. Within each one, the detail table groups schemes by a plan or funding label such as <strong>Central Sector Schemes</strong>. The D P Code at the right identifies the budget line. The final rows under each detailed head are called <strong>sub-detailed heads</strong>.</p>
+          <p>On this page, <strong>Pay</strong> is a sub-detailed head under <strong>Salaries</strong>. Its 2024-25 Budget Estimate is 548 thousand rupees. The Salaries subtotal is 643 thousand rupees and includes Pay.</p>
+          <p>The package uses the Revised Budget Estimate edition for 2016-17 and 2021-22. The 2021-22 edition covers demands 01 to 37.</p>
+          <p><a href="../public-finance/tn/explore.html">Explore Tamil Nadu</a> · <a href="https://github.com/xKDR/india-public-finance-portal/blob/main/state-finances/tamil-nadu/TN_data_dictionary.csv">Tamil Nadu data dictionary</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="bihar">
+      <h2>Bihar volumes and demand books</h2>
+      <div class="grid">
+        <figure>
+          <a href="img/br-demand-15.png"><img src="img/br-demand-15.png" loading="lazy" width="966" height="1200" alt="Bihar demand for pensions. Hindi account labels sit above separate tables, each with four columns in rupees." /></a>
+          <figcaption>Pension, demand 15, 2026-27. Printed page 2.</figcaption>
+        </figure>
+        <div>
+          <p>The data keeps the Hindi account names. Use the major-head code to find the same function in another state.</p>
+          <p>The page repeats the four amount columns for each block of accounts. In the first block, the pension object line under major head 2071 has a 2026-27 Budget Estimate of ₹15,46,42,92,000. The next two lines repeat that amount as totals.</p>
+          <p>The package stores both the printed page number and the page position in the PDF.</p>
+          <p><a href="../public-finance/br/explore.html">Explore Bihar</a> · <a href="https://github.com/xKDR/india-public-finance-portal/blob/main/state-finances/bihar/BR_README.md">Bihar data and format notes</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="maharashtra">
+      <h2>Maharashtra department white books</h2>
+      <p>The letter in a demand code identifies the department book. For example, A-1 is a demand in the General Administration Department book. Use the full code when you look up a demand. The public series has gaps for 2011-12 and 2025-26.</p>
+      <div class="grid">
+        <figure>
+          <div class="spread">
+            <a href="img/mh-plan-10.png"><img src="img/mh-plan-10.png" loading="lazy" width="1082" height="1400" alt="Left page with English labels, Actuals and prior Budget Estimates, split into Non-Plan, Plan and Total." /></a>
+            <a href="img/mh-plan-11.png"><img src="img/mh-plan-11.png" loading="lazy" width="1082" height="1400" alt="Right page with Marathi labels, Revised Estimates and the current Budget Estimate." /></a>
+          </div>
+          <figcaption>2017-18 white book, demand A-1. The four amount groups span facing pages A 10 and A 11. Where the book prints a Plan and Non-Plan split, use the Total column for the full amount.</figcaption>
+        </figure>
+        <figure>
+          <a href="img/mh-post-plan.png"><img src="img/mh-post-plan.png" loading="lazy" width="1400" height="1079" alt="Maharashtra detail page with English and Marathi labels, four amount columns, and separate Gross Total, Recoveries and Net Total lines." /></a>
+          <figcaption>2024-25 white book, demand A-1. This page shows four amounts in a single row, with separate lines for Gross Total, Details of Recoveries and Net Total.</figcaption>
+        </figure>
+      </div>
+      <p>The detail rows give gross expenditure. On the 2024-25 page, <strong>Office Expenses</strong> is a detail row with a Budget Estimate of 2,800 thousand rupees. The minor-head total repeats it. To reconcile gross with net, deduct recoveries from the printed Gross Total for the same major head and demand.</p>
+      <p><a href="../public-finance/mh/explore.html">Explore Maharashtra</a> · <a href="https://github.com/xKDR/india-public-finance-portal/blob/main/state-finances/maharashtra/MH_README.md">Maharashtra data and format notes</a></p>
+    </section>
+
     <section id="columns">
       <h2>The columns you&rsquo;ll use first</h2>
-      <p>You don&rsquo;t need all 30-odd columns to start. These few answer most first questions. (The complete reference is at the <a href="#dictionary">end of this guide</a>.)</p>
+      <p>These fields identify a line and its amount. The examples use Karnataka field names. See the state package notes for the raw column names in each state.</p>
       <div class="tablewrap">
         <table>
           <thead><tr><th scope="col">Column</th><th scope="col">What it is</th></tr></thead>
           <tbody>
             <tr><td><code>fiscal_year</code></td><td>The year an amount refers to, e.g. <code>2024-25</code>.</td></tr>
             <tr><td><code>measure</code></td><td>One of <code>BE</code>, <code>RE</code>, <code>Actuals</code> (see <a href="#measures">the three measures</a>). In the raw CSV these are separate amount columns instead.</td></tr>
-            <tr><td><code>demand_number</code></td><td>The department / grant, e.g. <code>03</code> = Finance. Map numbers to names with <code>demand_names.json</code>.</td></tr>
+            <tr><td><code>demand_number</code></td><td>The grant code. In Karnataka, <code>03</code> is Finance. Find the names in the state package's demand lookup, such as <code>KA_demand_names.json</code>.</td></tr>
             <tr><td><code>major_head_code</code> / <code>major_head_name</code></td><td>Broad function, e.g. <code>2210</code> Medical and Public Health.</td></tr>
             <tr><td><code>object_head_code</code> / <code>object_head_description</code></td><td>The line item, e.g. <code>003</code> Pay-Staff (see <a href="#ladder">the ladder</a>).</td></tr>
-            <tr><td><code>amount_lakh</code></td><td>The amount, in INR lakh. Divide by 100 for crore.</td></tr>
+            <tr><td><code>amount_lakh</code></td><td>Amount in lakh rupees in the prepared Karnataka example table. The raw files identify their unit in <code>amount_unit</code>.</td></tr>
             <tr><td><code>type_of_table</code>, <code>row_type</code>, <code>row_level</code></td><td>The three columns that tell you which rows are safe to add (see <a href="#totals">Don&rsquo;t double-count</a>). Needed for the raw CSV; the <code>examples/</code> tidy table has already applied them.</td></tr>
           </tbody>
         </table>
@@ -204,25 +265,25 @@
 
     <section id="ladder">
       <h2>The accounting ladder</h2>
-      <p>The DEA Budget Manual describes six tiers in the Detailed Demands for Grants. In this package they appear as code/name columns from Major Head down to Object Head.</p>
+      <p>These are the six main levels in Karnataka's expenditure tables. Other states can add levels or use different code lengths. Tamil Nadu adds a funding group and calls its lowest level the sub-detailed head.</p>
       <div class="ladder">
         <div class="step"><strong>Major Head</strong><small>4 digits. Broad function, such as tax collection or education.</small></div>
         <div class="step"><strong>Sub-Major Head</strong><small>2 digits. Sub-function within a major head. <code>00</code> often means no sub-major split.</small></div>
         <div class="step"><strong>Minor Head</strong><small>3 digits. Programme-level classification.</small></div>
         <div class="step"><strong>Sub-Head</strong><small>2 digits. Scheme-level classification.</small></div>
         <div class="step"><strong>Detailed Head</strong><small>2 digits. Sub-scheme or detailed activity.</small></div>
-        <div class="step"><strong>Object Head</strong><small>2 digits. Object or primary unit of appropriation. This is the usual additive <em>leaf</em> level.</small></div>
+        <div class="step"><strong>Object Head</strong><small>Spending line, such as <code>003</code> for Pay-Staff. These detail rows can be added together.</small></div>
       </div>
     </section>
 
     <section id="totals">
       <h2>Don&rsquo;t double-count</h2>
       <p>You just saw it: the object-head leaf rows under &ldquo;Commissioner for Excise&rdquo; sum to 31,335.31, and the <code>HOA Total</code> row says 31,335.31 again. <strong>Do not sum the whole table. Totals and summary rows repeat amounts already present in leaf rows.</strong></p>
-      <p>To total safely, keep only the additive leaf rows &mdash; all three conditions are required:</p>
+      <p>Use the package's <code>budget_leaves</code> files for rows you can add. To get the same rows from a raw CSV for Karnataka, Bihar or Maharashtra, apply all three conditions below.</p>
       <pre><code>WHERE type_of_table = 'object_head'
   AND row_type      = 'Data'
   AND row_level     = 'Object-Head'</code></pre>
-      <p>About <strong>37%</strong> of rows are headers, totals, or summary rows &mdash; all excluded by this predicate. The <code>examples/</code> tidy table (<code>karnataka_budget_tidy.csv</code>) has this filter already applied, so you can sum it directly with no predicate.</p>
+      <p>For Tamil Nadu, use <code>type_of_table = 'detailed_expenditure'</code>, <code>row_type = 'Data'</code> and <code>row_level = 'Sub-Detailed-Head'</code>. The prepared Karnataka example table already applies its filter.</p>
     </section>
 
     <section id="voted">
@@ -232,13 +293,14 @@
     </section>
 
     <section id="measures">
-      <h2>The three measures: plan, revision, actual</h2>
-      <p>Each year carries three measures: <strong>BE</strong> (Budget Estimate, the plan), <strong>RE</strong> (Revised Estimate, the mid-year correction), and <strong>Actuals</strong> (what was actually spent). The same fiscal year is reported across several yearly documents; the package&rsquo;s <em>canonical source rule</em> takes each measure from one document &mdash; BE from the document&rsquo;s own year, RE from the next year&rsquo;s document, Actuals from the year-after&rsquo;s document &mdash; so a value is never counted from two sources. The <code>examples/</code> tidy table applies this rule for you.</p>
+      <h2>Budget estimates, revised estimates and actuals</h2>
+      <p>The books usually show four amounts for three fiscal years. For a given fiscal year, take the <strong>Budget Estimate</strong> from that year's book, the <strong>Revised Estimate</strong> from the next year's book, and <strong>Actuals</strong> from the book two years later. The prepared Karnataka example table already applies this rule.</p>
+      <p>A missing book can leave a measure blank. For example, Maharashtra's 2024-25 Revised Estimate needs the 2025-26 book, which is absent from the public package.</p>
     </section>
 
     <section id="validation">
       <h2>Validation drilldown</h2>
-      <p>Example key:</p>
+      <p>This check key is from the Karnataka package.</p>
       <pre><code>KA.2021-22.expvol_1.in_schema.object_head.minor.03_2043_00_101</code></pre>
       <div class="tablewrap">
         <table>
@@ -259,14 +321,15 @@
 
     <section id="files">
       <h2>Files to use</h2>
+      <p>Each state package has budget rows, checks, a validation summary and a data dictionary. These file paths use Karnataka's prefix, <code>KA</code>.</p>
       <div class="tablewrap">
         <table>
           <thead><tr><th scope="col">File</th><th scope="col">Use</th></tr></thead>
           <tbody>
-            <tr><td><code>years/&lt;year&gt;/csv/budget_&lt;year&gt;.csv</code></td><td>Extracted source rows with hierarchy, row type, row level, amount columns, and PDF provenance.</td></tr>
-            <tr><td><code>years/&lt;year&gt;/csv/checks_&lt;year&gt;.csv</code></td><td>Validation comparisons by check, account key, and financial column.</td></tr>
-            <tr><td><code>validation_summary.csv</code> / <code>.html</code></td><td>Cross-year validation pass rates by year, demand, and hierarchy level.</td></tr>
-            <tr><td><code>data_dictionary.csv</code></td><td>Column definitions and controlled values for every table (the full reference below is drawn from it).</td></tr>
+            <tr><td><code>KA_years/KA_&lt;year&gt;/KA_csv/KA_budget_&lt;year&gt;.csv</code></td><td>Extracted source rows with hierarchy, row type, row level, amount columns, and PDF provenance.</td></tr>
+            <tr><td><code>KA_years/KA_&lt;year&gt;/KA_csv/KA_checks_&lt;year&gt;.csv</code></td><td>Validation comparisons by check, account key, and financial column.</td></tr>
+            <tr><td><code>KA_validation_summary.csv</code> / <code>.html</code></td><td>Cross-year validation pass rates by year, demand, and hierarchy level.</td></tr>
+            <tr><td><code>KA_data_dictionary.csv</code></td><td>Column definitions and controlled values for every table.</td></tr>
             <tr><td><code>examples/</code></td><td>Worked analyses in Python, R, and SQL on the pre-filtered tidy table. Start with the warm-up &mdash; see the <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/examples">examples index</a>.</td></tr>
           </tbody>
         </table>
@@ -274,8 +337,8 @@
     </section>
 
     <section id="dictionary">
-      <h2>Full column reference <a class="toplink" href="#intro">&uarr; top</a></h2>
-      <p>The complete <code>budget</code> table columns, grouped. Controlled values are shown as <code>code</code> chips. The machine-readable source, including the <code>checks</code> and <code>validation_summary</code> tables, is <code>karnataka-state-finance/data_dictionary.csv</code>.</p>
+      <h2>Karnataka column reference <a class="toplink" href="#intro">&uarr; top</a></h2>
+      <p>See <a href="https://github.com/xKDR/india-public-finance-portal/blob/main/state-finances/karnataka/KA_data_dictionary.csv">Karnataka's data dictionary</a> for the machine-readable definitions of the budget, checks and validation summary tables.</p>
 
       <details class="dict" open>
         <summary>Identity &amp; provenance <small>&mdash; where the row came from</small></summary>
@@ -339,8 +402,7 @@
   </main>
 
   <div class="foot">
-    <p>Built from the Karnataka Detailed Estimates of Expenditure (package source range FY 2016-17 to 2026-27), package <code>v0.2.0-draft</code>. The public explorer currently surfaces FY 2018-19 to 2026-27.</p>
-    <p><a href="results.html">Results slideshow</a> &nbsp;&middot;&nbsp; <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/examples">Examples index &amp; getting started</a> &nbsp;&middot;&nbsp; <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/karnataka-state-finance">Data package README</a> &nbsp;&middot;&nbsp; <a href="#intro">Back to top</a></p>
+    <p><a href="results.html">Results slideshow</a> &nbsp;&middot;&nbsp; <a href="https://github.com/xKDR/india-public-finance-portal/tree/main/examples">Worked examples</a> &nbsp;&middot;&nbsp; <a href="#intro">Back to top</a></p>
   </div>
 </div>
 </body>
